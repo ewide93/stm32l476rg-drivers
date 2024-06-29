@@ -1,0 +1,9 @@
+# Directories to ignore
+.venv/
+.vscode/
+build/obj/
+build/out/
+
+# File extensions to ignore
+
+# Individual files to ignore

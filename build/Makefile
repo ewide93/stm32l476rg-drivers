@@ -1,0 +1,99 @@
+# Paths to navigate project structure
+TARGET := STM32L476RG
+OBJ_DIR := obj
+OUT_DIR := out
+SRC_DIR := ../src
+INC_DIR := ../inc
+CMSIS_DIR := $(INC_DIR)/CMSIS
+ST_DIR := $(INC_DIR)/ST
+LINKER_SCRIPT := $(TARGET).ld
+
+# Microcontroller specific options
+MCUFLAGS := -mcpu=cortex-m4
+MCUFLAGS += -mfpu=fpv4-sp-d16
+MCUFLAGS += -mfloat-abi=hard
+MCUFLAGS += -mthumb
+
+# Cross compilation toolchain
+PREFIX := arm-none-eabi-
+CC := $(PREFIX)gcc
+LD := $(PREFIX)gcc
+
+# Source files
+include Sources.mk
+
+# Object files
+OBJ := $(patsubst %.c,$(OBJ_DIR)/%.o,$(subst $(SRC_DIR)/,,$(SRC)))
+
+# Dependency files
+DEP := $(patsubst %.o,%.d,$(OBJ))
+
+# Header files
+INC := -I$(INC_DIR)
+INC += -I$(CMSIS_DIR)
+INC += -I$(ST_DIR)
+
+# Compilation options
+CFLAGS := $(MCUFLAGS)
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+CFLAGS += -MMD -MP
+CFLAGS += -c
+CFLAGS += -std=c99
+CFLAGS += $(INC)
+CFLAGS += -DSTM32L476xx
+
+# Optimization level
+OPT := -Os
+
+# Compiler warnings
+WFLAGS := -Wall
+WFLAGS += -Wextra
+WFLAGS += -Wpedantic
+WFLAGS += -Werror
+WFLAGS += -Wunused-variable
+WFLAGS += -Wunused-parameter
+WFLAGS += -Wstrict-prototypes
+WFLAGS += -Wshadow
+WFLAGS += -Wold-style-definition
+WFLAGS += -Wredundant-decls
+# WFLAGS += -Wnested-externs
+WFLAGS += -Wmissing-include-dirs
+WFLAGS += -Wjump-misses-init
+WFLAGS += -Wlogical-op
+
+# Linker options
+LDFLAGS := $(MCUFLAGS)
+LDFLAGS += -T$(LINKER_SCRIPT)
+LDFLAGS += -nostartfiles
+LDFLAGS += -Wl,-Map=$(OUT_DIR)/$(TARGET).map
+LDFLAGS += -Wl,--cref
+LDFLAGS += -Wl,--gc-sections
+LDFLAGS += $(INC)
+
+# Default rule
+.PHONY: all
+all: $(OUT_DIR)/$(TARGET).elf
+
+flash: $(OUT_DIR)/$(TARGET).elf
+	openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
+
+# Rule to produce .elf file
+$(OUT_DIR)/$(TARGET).elf: $(OBJ)
+	@echo "Linking $^"
+	@$(LD) $(LDFLAGS) $^ -o $@
+
+# Rule to produce .o files
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@echo "Compiling $<"
+	@$(CC) $(CFLAGS) $(WFLAGS) $(OPT) $< -o $@
+
+.PHONY: clean
+clean:
+	@echo "Cleaning..."
+	@rm -rf $(OBJ_DIR)/*.o
+	@rm -rf $(OBJ_DIR)/*.d
+	@rm -rf $(OUT_DIR)/*.map
+	@rm -rf $(OUT_DIR)/*.elf
+
+-include $(DEP)
