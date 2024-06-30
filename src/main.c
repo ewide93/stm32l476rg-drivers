@@ -8,16 +8,10 @@
 /* Include directives */
 #include "typedef.h"
 #include "ST/stm32l4xx.h"
+#include "systick.h"
 
 /* Local function declarations */
 void Setup(void);
-
-static volatile U64 TickCnt = 0;
-
-void SysTickHandler(void)
-{
-    TickCnt++;
-}
 
 /**
  * @brief Starting point for normal program execution.
@@ -25,14 +19,6 @@ void SysTickHandler(void)
 int main(void)
 {
     Setup();
-
-    /* Set counter to wrap around after 10000 ticks, generating an interrupt each ms */
-    SysTick->LOAD = 9999U;
-    SysTick->VAL = 0U;
-
-    /* Enable counter & interrupt */
-    SysTick->CTRL |= (SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk);
-
 
     GPIOA->MODER &= ~(GPIO_MODER_MODE5_Msk);
     GPIOA->MODER |= (1 << GPIO_MODER_MODE5_Pos);
@@ -43,14 +29,15 @@ int main(void)
     GPIOA->PUPDR |= (0 << GPIO_PUPDR_PUPD5_Pos);
     GPIOA->ODR |= GPIO_ODR_OD5;
 
-    U64 TargetTime = TickCnt + 500U;
+    U64 TargetTime = SysTick_GetTicks() + 500U;
 
     while (1)
     {
-        if (TickCnt >= TargetTime)
+        const U64 Timestamp = SysTick_GetTicks();
+        if (Timestamp >= TargetTime)
         {
             GPIOA->ODR ^= GPIO_ODR_OD5;
-            TargetTime = TickCnt + 500U;
+            TargetTime = Timestamp + 500U;
         }
     }
 
@@ -111,4 +98,7 @@ void Setup(void)
     /* Wait for clock to be ready */
     while ( !(RCC->CFGR & RCC_CFGR_SWS_PLL) ) { __NOP(); }
 
+    /* Initialize SysTick with default configuration */
+    const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
+    SysTick_Init(&SysTickCfg);
 }
