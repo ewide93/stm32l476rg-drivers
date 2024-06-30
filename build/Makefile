@@ -42,6 +42,7 @@ CFLAGS += -c
 CFLAGS += -std=c99
 CFLAGS += $(INC)
 CFLAGS += -DSTM32L476xx
+CFLAGS += -ggdb3
 
 # Optimization level
 OPT := -Os
