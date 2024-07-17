@@ -7,7 +7,7 @@
 #ifndef SYSTICK_H
 #define SYSTICK_H
 
-/* Include directives */
+/* ------------------------------- Include directives ------------------------------ */
 #include "stm32l4xx.h"
 #include "typedef.h"
 

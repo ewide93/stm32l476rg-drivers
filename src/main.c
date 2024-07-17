@@ -9,6 +9,7 @@
 #include "typedef.h"
 #include "ST/stm32l4xx.h"
 #include "systick.h"
+#include "pin.h"
 
 /* Local function declarations */
 void Setup(void);
@@ -19,15 +20,7 @@ void Setup(void);
 int main(void)
 {
     Setup();
-
-    GPIOA->MODER &= ~(GPIO_MODER_MODE5_Msk);
-    GPIOA->MODER |= (1 << GPIO_MODER_MODE5_Pos);
-    GPIOA->OTYPER &= ~(GPIO_OTYPER_OT5);
-    GPIOA->OSPEEDR &= ~(GPIO_OSPEEDR_OSPEED5_Msk);
-    GPIOA->OSPEEDR |= (0 << GPIO_OSPEEDR_OSPEED5_Pos);
-    GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPD5_Msk);
-    GPIOA->PUPDR |= (0 << GPIO_PUPDR_PUPD5_Pos);
-    GPIOA->ODR |= GPIO_ODR_OD5;
+    Pin_Init();
 
     U64 TargetTime = SysTick_GetTicks() + 500U;
 
