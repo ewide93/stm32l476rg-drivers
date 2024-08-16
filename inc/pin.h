@@ -120,7 +120,6 @@ typedef struct
 
 /**
  * @brief Initialize GPIO pins in accordance with configuration table.
- * @returns True = success, false = configuration error.
  */
 void Pin_Init(void);
 
