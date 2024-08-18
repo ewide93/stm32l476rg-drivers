@@ -70,6 +70,39 @@ def parse_nm(stdout: str) -> List[Symbol]:
             )
     return sorted(symbols, key=lambda sym: sym.src_file)
 
+def symbol_type_to_str(symbol: Symbol) -> str:
+    """Return a string representation of the given symbol type."""
+    match symbol.symbol_type:
+        case "A":
+            return "Absolute"
+        case "B" | "b":
+            return "Zero initialized data"
+        case "C" | "c":
+            return "Common"
+        case "D" | "d":
+            return "Initialized data"
+        case "G" | "g":
+            return "Small initialized data"
+        case "I" | "i":
+            return "Indirect reference"
+        case "N":
+            return "Debug"
+        case "n":
+            return "Read-only data"
+        case "p":
+            return "Stack unwind"
+        case "S" | "s":
+            return "Small zero initialized data"
+        case "T" | "t":
+            return "Code"
+        case "U":
+            return "Undefined"
+        case "u":
+            return "Unique global"
+        case "W" | "w" | "V" | "v":
+            return "Weak"
+        case "?" | _:
+            return "Unknown"
 
 @task()
 def build(ctx: Context) -> None:
@@ -117,9 +150,9 @@ def nm(ctx: Context) -> None:
     for symbol in symbols:
         if symbol.src_file not in src_files:
             src_files.append(symbol.src_file)
-            print(f"---- {symbol.src_file} ----")
-        print(f"Address: {symbol.address}", end="\t")
-        print(f"Size: {symbol.size}", end="\t")
-        print(f"Type: {symbol.symbol_type}", end="\t")
-        print(f"Name: {symbol.name}", end="\t")
-        print(f"Line: {symbol.line_num}")
+            print("\n" + f"-- Source file: {symbol.src_file} ".ljust(88, "-"))
+        print(f"Name: {symbol.name}")
+        print(f"Address: {symbol.address}".ljust(22, " "), end="")
+        print(f"Size: {symbol.size}".ljust(10, " "), end="")
+        print(f"Line: {symbol.line_num}".ljust(10, " "), end="")
+        print(f"Type: {symbol_type_to_str(symbol)}\n")

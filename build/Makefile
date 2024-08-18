@@ -37,9 +37,10 @@ INC += -I$(ST_DIR)
 CFLAGS := $(MCUFLAGS)
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
+CFLAGS += -fstack-usage
 CFLAGS += -MMD -MP
 CFLAGS += -c
-CFLAGS += -std=c99
+CFLAGS += -std=c11
 CFLAGS += $(INC)
 CFLAGS += -DSTM32L476xx
 CFLAGS += -ggdb3
@@ -58,7 +59,7 @@ WFLAGS += -Wstrict-prototypes
 WFLAGS += -Wshadow
 WFLAGS += -Wold-style-definition
 WFLAGS += -Wredundant-decls
-# WFLAGS += -Wnested-externs
+WFLAGS += -Wstack-usage=128
 WFLAGS += -Wmissing-include-dirs
 WFLAGS += -Wjump-misses-init
 WFLAGS += -Wlogical-op
@@ -67,6 +68,8 @@ WFLAGS += -Wlogical-op
 LDFLAGS := $(MCUFLAGS)
 LDFLAGS += -T$(LINKER_SCRIPT)
 LDFLAGS += -nostartfiles
+LDFLAGS += -nostdlib
+LDFLAGS += -lgcc
 LDFLAGS += -Wl,-Map=$(OUT_DIR)/$(TARGET).map
 LDFLAGS += -Wl,--cref
 LDFLAGS += -Wl,--gc-sections
