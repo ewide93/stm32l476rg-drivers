@@ -29,7 +29,7 @@ int main(void)
         const U64 Timestamp = SysTick_GetTicks();
         if (Timestamp >= TargetTime)
         {
-            GPIOA->ODR ^= GPIO_ODR_OD5;
+            Pin_GetPort(PIN_A5)->ODR ^= (1 << 5);
             TargetTime = Timestamp + 500U;
         }
     }

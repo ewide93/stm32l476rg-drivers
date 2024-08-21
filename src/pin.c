@@ -7,6 +7,9 @@
 /* ------------------------------- Include directives ------------------------------ */
 #include "pin.h"
 
+/* ------------------------------ Private definitions ------------------------------ */
+#define EXTRACT_PORT(PortPin) (((PortPin) & 0xF0U) >> 4U)
+
 /* -------------------------- Private function prototypes -------------------------- */
 
 /**
@@ -713,6 +716,19 @@ static inline void Pin_SetAnalog(const Pin_PinType* Pin)
     if (Pin->Config.Analog >= PIN_ANALOG_ENUM_LIM) { return; }
     Pin->Port->ASCR &= ~(0x01UL << Pin->Pin);
     Pin->Port->ASCR |= ((U32)(Pin->Config.Analog) << Pin->Pin);
+}
+
+GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin)
+{
+    switch (EXTRACT_PORT(PortPin))
+    {
+        case 0xA: { return GPIOA; }
+        case 0xB: { return GPIOB; }
+        case 0xC: { return GPIOC; }
+        case 0xD: { return GPIOD; }
+        default:  { return NULL; }
+    }
+    return NULL;
 }
 
 /* -------------------------- Public function definitions -------------------------- */

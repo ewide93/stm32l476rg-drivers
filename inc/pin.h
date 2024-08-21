@@ -14,6 +14,56 @@
 /*  ---------------------------Structures & enumerations --------------------------- */
 
 /**
+ * @brief Enumeration of MCU pins of the STM32L476RG.
+ */
+typedef enum
+{
+    PIN_A0 = 0xA0U,
+    PIN_A1 = 0xA1U,
+    PIN_A4 = 0xA4U,
+    PIN_A5 = 0xA5U,
+    PIN_A6 = 0xA6U,
+    PIN_A7 = 0xA7U,
+    PIN_A8 = 0xA8U,
+    PIN_A9 = 0xA9U,
+    PIN_A10 = 0xAAU,
+    PIN_A11 = 0xABU,
+    PIN_A12 = 0xACU,
+    PIN_A15 = 0xAFU,
+    PIN_B0 = 0xB0U,
+    PIN_B1 = 0xB1U,
+    PIN_B2 = 0xB2U,
+    PIN_B4 = 0xB4U,
+    PIN_B5 = 0xB5U,
+    PIN_B6 = 0xB6U,
+    PIN_B7 = 0xB7U,
+    PIN_B8 = 0xB8U,
+    PIN_B9 = 0xB9U,
+    PIN_B10 = 0xBAU,
+    PIN_B11 = 0xBBU,
+    PIN_B12 = 0xBCU,
+    PIN_B13 = 0xBDU,
+    PIN_B14 = 0xBEU,
+    PIN_B15 = 0xBFU,
+    PIN_C0 = 0xC0U,
+    PIN_C1 = 0xC1U,
+    PIN_C2 = 0xC2U,
+    PIN_C3 = 0xC3U,
+    PIN_C4 = 0xC4U,
+    PIN_C5 = 0xC5U,
+    PIN_C6 = 0xC6U,
+    PIN_C7 = 0xC7U,
+    PIN_C8 = 0xC8U,
+    PIN_C9 = 0xC9U,
+    PIN_C10 = 0xCAU,
+    PIN_C11 = 0xCBU,
+    PIN_C12 = 0xCCU,
+    PIN_C13 = 0xCDU,
+    PIN_D2 = 0xD2U,
+    PIN_ENUM_LIM = 0xFFU
+} Pin_PortPinEnum;
+
+/**
  * @brief Enumeration of I/O modes.
  */
 typedef enum
@@ -122,5 +172,12 @@ typedef struct
  * @brief Initialize GPIO pins in accordance with configuration table.
  */
 void Pin_Init(void);
+
+/**
+ * @brief Get the GPIO port based on the given port & pin enumeration.
+ * @param PortPin Port & pin
+ * @returns Pointer to GPIO port structure.
+ */
+GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin);
 
 #endif /* PIN_H */
