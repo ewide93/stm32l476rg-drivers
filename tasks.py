@@ -61,3 +61,10 @@ def nm(ctx: Context) -> None:
     """List the symbols in the firmware image."""
     output = ctx.run(f"{Binutils.COMMANDS["nm"]} {PATHS['elf']}", hide=True)
     print(Binutils.parse_nm(output.stdout))
+
+
+@task()
+def lint(ctx: Context) -> None:
+    """Run the cppcheck linter."""
+    with ctx.cd(PATHS["build_dir"]):
+        ctx.run("make lint")

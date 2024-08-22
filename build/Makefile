@@ -75,6 +75,20 @@ LDFLAGS += -Wl,--cref
 LDFLAGS += -Wl,--gc-sections
 LDFLAGS += $(INC)
 
+# Linter options.
+LINTER := cppcheck
+LINTER_CACHE_DIR = cppcheck_cache
+LINT_ARM_CFG := "C:/Program Files/Cppcheck/platforms/arm32-wchar_t4.xml"
+LINTFLAGS := --enable=all
+LINTFLAGS += --quiet
+LINTFLAGS += --std=c11
+LINTFLAGS += --platform=$(LINT_ARM_CFG)
+LINTFLAGS += --cppcheck-build-dir=$(LINTER_CACHE_DIR)
+LINT_INC := -I $(INC_DIR)
+LINT_INC += -I $(ST_DIR)
+LINT_INC += -I $(CMSIS_DIR)
+LINT_SUPPRESS := --suppressions-list=cppcheck_suppressions.txt
+
 # Default rule
 .PHONY: all
 all: $(OUT_DIR)/$(TARGET).elf
@@ -99,5 +113,10 @@ clean:
 	@rm -rf $(OBJ_DIR)/*.d
 	@rm -rf $(OUT_DIR)/*.map
 	@rm -rf $(OUT_DIR)/*.elf
+
+# Rule for running linter.
+.PHONY: lint
+lint:
+	@$(LINTER) $(LINTFLAGS) $(LINT_INC) $(LINT_SUPPRESS) $(SRC_DIR)
 
 -include $(DEP)
