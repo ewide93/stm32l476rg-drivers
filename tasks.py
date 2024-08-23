@@ -67,4 +67,14 @@ def nm(ctx: Context) -> None:
 def lint(ctx: Context) -> None:
     """Run the cppcheck linter."""
     with ctx.cd(PATHS["build_dir"]):
+        print("Running static code analysis...")
         ctx.run("make lint")
+    print("Static code analysis complete!")
+    with open(PATHS["build_dir"].joinpath("cppcheck_output.txt"), mode="r") as file:
+        line_cnt = 0
+        print("-- Results: cppcheck ".ljust(88, "-"))
+        for line in file:
+            print(line)
+            line_cnt += 1
+    if line_cnt == 0:
+        print("No errors detected!")

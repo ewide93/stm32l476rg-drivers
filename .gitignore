@@ -9,3 +9,4 @@ build/cppcheck_cache/
 
 # Individual files to ignore
 */cppcheck_suppressions.txt
+*/cppcheck_output.txt
