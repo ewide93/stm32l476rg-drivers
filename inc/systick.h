@@ -54,7 +54,7 @@ U64 SysTick_GetTicks(void);
  */
 static inline SysTick_ConfigType SysTick_GetDefaultConfig(void)
 {
-    return (SysTick_ConfigType) { .ReloadVal = 9999, .ClockSource = SYSTICK_CLK_SRC_AHB_DIV_8 };
+    return (SysTick_ConfigType) { .ReloadVal = 10000, .ClockSource = SYSTICK_CLK_SRC_AHB_DIV_8 };
 }
 
 #endif  /* SYSTICK_H */
