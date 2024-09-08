@@ -121,10 +121,6 @@ VectorTableType VectorTable __attribute__((section(".isr_vector"))) =
  */
 void ResetHandler(void)
 {
-    /**
-     * @todo Increase operational frequency before memory initialization?
-     */
-
     /* Initialize .data section */
     volatile U32* SrcPtr = &_data_loadaddr;
     volatile U32* DestPtr = &_data;

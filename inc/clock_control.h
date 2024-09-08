@@ -2,6 +2,10 @@
  * @file clock_control.h
  *
  * @brief Low level module for configuration & control of MCU clocks.
+ *
+ * @note Known limitations & not implemented features:
+ *          * Missing ability to control multiplexers of
+ *            various peripheral clocks.
  */
 
 #ifndef CLOCK_CONTROL_H
@@ -80,6 +84,17 @@ typedef enum
     PLL_INPUT_HSI = 0x2U,
     PLL_INPUT_HSE = 0x3U,
 } ClkCtrl_PllInputEnum;
+
+
+/**
+ * @brief Enumeration of the available PLL outputs.
+ */
+typedef enum
+{
+    PLL_OUTPUT_P = 16U,
+    PLL_OUTPUT_Q = 20U,
+    PLL_OUTPUT_R = 24U
+} ClkCtrl_PllOutputEnum;
 
 
 /**
@@ -466,6 +481,24 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllQ(ClkCtrl_PllEnum Pll, ClkCtrl_PllQEnum Q);
  * @return Return code indicating result of the operation.
  */
 ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R);
+
+
+/**
+ * @brief Enable the given output of the given PLL circuit.
+ * @param Pll The PLL circuit of interest.
+ * @param Output The PLL output of interest.
+ * @return Return code indicating result of the operation.
+ */
+ClkCtrl_ReturnCodeEnum ClkCtrl_PllOutputEnable(ClkCtrl_PllEnum Pll, ClkCtrl_PllOutputEnum Output);
+
+
+/**
+ * @brief Disable the given output of the given PLL circuit.
+ * @param Pll The PLL circuit of interest.
+ * @param Output The PLL output of interest.
+ * @return Return code indicating result of the operation.
+ */
+ClkCtrl_ReturnCodeEnum ClkCtrl_PllOutputDisable(ClkCtrl_PllEnum Pll, ClkCtrl_PllOutputEnum Output);
 
 
 /**

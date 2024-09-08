@@ -381,6 +381,39 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllQ(ClkCtrl_PllEnum Pll, ClkCtrl_PllQEnum Q)
 }
 
 
+ClkCtrl_ReturnCodeEnum ClkCtrl_PllOutputEnable(ClkCtrl_PllEnum Pll, ClkCtrl_PllOutputEnum Output)
+{
+    if ((Pll == PLL_SAI2) && (Output == PLL_OUTPUT_Q)) { return CC_INVALID_CFG; }
+    ClkCtrl_ReturnCodeEnum Rc = CC_OK;
+
+    switch (Pll)
+    {
+        case PLL_MAIN: { RCC->PLLCFGR |= (1 << Output);     break; }
+        case PLL_SAI1: { RCC->PLLSAI1CFGR |= (1 << Output); break; }
+        case PLL_SAI2: { RCC->PLLSAI2CFGR |= (1 << Output); break; }
+        default:       { Rc = CC_INVALID_CFG;               break; }
+    }
+    return Rc;
+}
+
+
+ClkCtrl_ReturnCodeEnum ClkCtrl_PllOutputDisable(ClkCtrl_PllEnum Pll, ClkCtrl_PllOutputEnum Output)
+{
+    if ((Pll == PLL_SAI2) && (Output == PLL_OUTPUT_Q)) { return CC_INVALID_CFG; }
+    ClkCtrl_ReturnCodeEnum Rc = CC_OK;
+
+    switch (Pll)
+    {
+        case PLL_MAIN: { RCC->PLLCFGR &= ~(1 << Output);     break; }
+        case PLL_SAI1: { RCC->PLLSAI1CFGR &= ~(1 << Output); break; }
+        case PLL_SAI2: { RCC->PLLSAI2CFGR &= ~(1 << Output); break; }
+        default:       { Rc = CC_INVALID_CFG;                break; }
+    }
+    return Rc;
+}
+
+
+
 ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R)
 {
     const U8 Divisor = ClkCtrl_RToDivisor(R);
