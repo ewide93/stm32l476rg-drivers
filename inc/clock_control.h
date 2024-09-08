@@ -220,6 +220,73 @@ typedef enum
     CLK_NODE_PLL_SAI2_R,
 } ClkCtrl_ClockTreeNodeEnum;
 
+
+/**
+ * @brief Enumeration of available peripheral clocks. The MSB of the
+ *        chosen values for the enumerations correspond to the address
+ *        offset from the RCC base register (0x4002 1000). The LSB corresponds to
+ *        the bit position in the clock enable register.
+ */
+typedef enum
+{
+    PCLK_DMA1 = 0x4800U,
+    PCLK_DMA2 = 0x4801U,
+    PCLK_FLASH = 0x4808U,
+    PCLK_CRC = 0x480CU,
+    PCLK_TSC = 0x4810U,
+    PCLK_GPIOA = 0x4C00U,
+    PCLK_GPIOB = 0x4C01U,
+    PCLK_GPIOC = 0x4C02U,
+    PCLK_GPIOD = 0x4C03U,
+    PCLK_GPIOE = 0x4C04U,
+    PCLK_GPIOF = 0x4C05U,
+    PCLK_GPIOG = 0x4C06U,
+    PCLK_GPIOH = 0x4C07U,
+    PCLK_OTGFS = 0x4C0CU,
+    PCLK_ADC = 0x4C0DU,
+    PCLK_RNG = 0x4C12U,
+    PCLK_FMC = 0x5000U,
+    PCLK_QPSI = 0x5008U,
+    PCLK_TIM2 = 0x5800U,
+    PCLK_TIM3 = 0x5801U,
+    PCLK_TIM4 = 0x5802U,
+    PCLK_TIM5 = 0x5803U,
+    PCLK_TIM6 = 0x5804U,
+    PCLK_TIM7 = 0x5805U,
+    PCLK_LCD = 0x5809U,
+    PCLK_WWDG = 0x580BU,
+    PCLK_SPI2 = 0x580EU,
+    PCLK_SPI3 = 0x580FU,
+    PCLK_USART2 = 0x5811U,
+    PCLK_USART3 = 0x5812U,
+    PCLK_UART4 = 0x5813U,
+    PCLK_UART5 = 0x5814U,
+    PCLK_I2C1 = 0x5815U,
+    PCLK_I2C2 = 0x5816U,
+    PCLK_I2C3 = 0x5817U,
+    PCLK_CAN1 = 0x5819U,
+    PCLK_PWR = 0x581CU,
+    PCLK_DAC1 = 0x581DU,
+    PCLK_OPAMP = 0x581EU,
+    PCLK_LPTIM1 = 0x581FU,
+    PCLK_LPUART1 = 0x5C00U,
+    PCLK_I2C4 = 0x5C01U,
+    PCLK_LPTIM2 = 0x5C05U,
+    PCLK_SYSCFG = 0x6000U,
+    PCLK_FW = 0x6007U,
+    PCLK_SDMMC1 = 0x600AU,
+    PCLK_TIM1 = 0x600BU,
+    PCLK_SPI1 = 0x600CU,
+    PCLK_TIM8 = 0x600DU,
+    PCLK_USART1 = 0x600EU,
+    PCLK_TIM15 = 0x6010U,
+    PCLK_TIM16 = 0x6011U,
+    PCLK_TIM17 = 0x6012U,
+    PCLK_SAI1 = 0x6015U,
+    PCLK_SAI2 = 0x6016U,
+    PCLK_DFSDM1 = 0x6018U,
+} ClkCtrl_PeripheralClockEnum;
+
 /* -------------------------- Public function definitions -------------------------- */
 
 /**
@@ -438,5 +505,19 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetMsiFreqRange(ClkCtrl_MsiFreqRangeEnum FreqRang
  * @return Frequency in Hertz.
  */
 U32 ClkCtrl_GetNodeFreq(ClkCtrl_ClockTreeNodeEnum Node);
+
+
+/**
+ * @brief Enable the clock for the given peripheral.
+ * @param Peripheral Peripheral of interest.
+ */
+void ClkCtrl_PeripheralClockEnable(ClkCtrl_PeripheralClockEnum Peripheral);
+
+
+/**
+ * @brief Disable the clock for the given peripheral.
+ * @param Peripheral Peripheral of interest.
+ */
+void ClkCtrl_PeripheralClockDisable(ClkCtrl_PeripheralClockEnum Peripheral);
 
 #endif /* CLOCK_CONTROL_H */

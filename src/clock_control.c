@@ -553,3 +553,19 @@ U32 ClkCtrl_GetNodeFreq(ClkCtrl_ClockTreeNodeEnum Node)
     }
     return Rv;
 }
+
+
+void ClkCtrl_PeripheralClockEnable(ClkCtrl_PeripheralClockEnum Peripheral)
+{
+    volatile U32* const Register = (volatile U32*)(RCC_BASE + ((Peripheral & 0xFF00) >> 8U));
+    const U8 Bit = (U8)(Peripheral & 0xFFU);
+    *Register |= (1 << Bit);
+}
+
+
+void ClkCtrl_PeripheralClockDisable(ClkCtrl_PeripheralClockEnum Peripheral)
+{
+    volatile U32* const Register = (volatile U32*)(RCC_BASE + ((Peripheral & 0xFF00) >> 8U));
+    const U8 Bit = (U8)(Peripheral & 0xFFU);
+    *Register &= ~(1 << Bit);
+}
