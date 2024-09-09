@@ -63,6 +63,7 @@ WFLAGS += -Wstack-usage=128
 WFLAGS += -Wmissing-include-dirs
 WFLAGS += -Wjump-misses-init
 WFLAGS += -Wlogical-op
+WFLAGS += -Wdouble-promotion
 
 # Linker options
 LDFLAGS := $(MCUFLAGS)
