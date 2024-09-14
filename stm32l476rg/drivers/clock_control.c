@@ -480,7 +480,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R)
 }
 
 
-ClkCtrl_ReturnCodeEnum ClkCtrl_SetAbhPrescaler(ClkCtrl_AhbPrescalerEnum Prescaler)
+ClkCtrl_ReturnCodeEnum ClkCtrl_SetAhbPrescaler(ClkCtrl_AhbPrescalerEnum Prescaler)
 {
     const S16 Divisor = ClkCtrl_AhbPrescalerToDivisor(Prescaler);
     if (Divisor < 1) { return CC_INVALID_CFG; }

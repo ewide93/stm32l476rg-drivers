@@ -5,19 +5,24 @@
  *        only the bare necessities for operation has been performed.
  */
 
-/* Include directives */
+/* ------------------------------- Include directives ------------------------------ */
 #include "typedef.h"
 #include "stm32l4xx.h"
 #include "systick.h"
 #include "pin.h"
 #include "clock_control.h"
+#include "flash.h"
 
-/* Local function declarations */
-void Setup(void);
+/* -------------------------- Local function declarations -------------------------- */
 
 /**
- * @brief Starting point for normal program execution.
+ * @brief Configure embedded flash memory, clocks & system timer
+ * @todo Move into separate board support package module
  */
+void Setup(void);
+
+/* ------------------------------ Program entry-point ------------------------------ */
+
 int main(void)
 {
     Setup();
@@ -38,20 +43,14 @@ int main(void)
     return 0;
 }
 
-/* Local function definitions */
+/* --------------------------- Local function definitions -------------------------- */
+
 void Setup(void)
 {
-    /* Enable flash prefetch. */
-    FLASH->ACR |= FLASH_ACR_PRFTEN;
-
-    /* Set number of flash wait states */
-    U32 TempACR = FLASH->ACR;
-    TempACR &= ~FLASH_ACR_LATENCY_Msk;
-    TempACR |= FLASH_ACR_LATENCY_4WS;
-    FLASH->ACR = TempACR;
-
-    /* Enable instruction & data caches */
-    FLASH->ACR |= (FLASH_ACR_DCEN | FLASH_ACR_ICEN);
+    Flash_PrefetchEnable();
+    Flash_InstructionCacheEnable();
+    Flash_DataCacheEnable();
+    Flash_SetFlashLatency(FLASH_WS_4);
 
     ClkCtrl_HsiEnable(true);
     ClkCtrl_SetPllInput(PLL_INPUT_HSI, PLL_M_4);
@@ -60,7 +59,7 @@ void Setup(void)
     ClkCtrl_PllOutputEnable(PLL_MAIN, PLL_OUTPUT_R);
     ClkCtrl_PllEnable(PLL_MAIN, true);
     ClkCtrl_SetSysclkInput(SYSCLK_INPUT_PLL);
-    ClkCtrl_SetAbhPrescaler(AHB_PS_1);
+    ClkCtrl_SetAhbPrescaler(AHB_PS_1);
     ClkCtrl_SetApbPrescaler(APB1, APB_PS_1);
     ClkCtrl_SetApbPrescaler(APB2, APB_PS_1);
 

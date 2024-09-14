@@ -152,7 +152,7 @@ flash: $(OUT_DIR)/$(TARGET).elf
 # Rule to produce .elf file
 # -------------------------------------------------------------------------------------
 $(OUT_DIR)/$(TARGET).elf: $(addprefix $(OBJ_DIR)/,$(OBJ))
-	@echo "Linking $^"
+	@echo "Linking $(notdir $^)"
 	@$(LD) $(LDFLAGS) $^ -o $@
 
 # -------------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ $(OUT_DIR)/$(TARGET).elf: $(addprefix $(OBJ_DIR)/,$(OBJ))
 # -------------------------------------------------------------------------------------
 $(OBJ_DIR)/%.o: %.c
 	@echo "Compiling $(notdir $<)"
-	$(CC) $(CFLAGS) $(WFLAGS) $(OPT) $< -o $@
+	@$(CC) $(CFLAGS) $(WFLAGS) $(OPT) $< -o $@
 
 # -------------------------------------------------------------------------------------
 # Rule to clean build directory

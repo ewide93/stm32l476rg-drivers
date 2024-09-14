@@ -508,7 +508,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_PllOutputDisable(ClkCtrl_PllEnum Pll, ClkCtrl_Pll
  * @note After the first call of this function further calls
  *       will do nothing.
  */
-ClkCtrl_ReturnCodeEnum ClkCtrl_SetAbhPrescaler(ClkCtrl_AhbPrescalerEnum Prescaler);
+ClkCtrl_ReturnCodeEnum ClkCtrl_SetAhbPrescaler(ClkCtrl_AhbPrescalerEnum Prescaler);
 
 
 /**
