@@ -12,6 +12,7 @@
 #include "pin.h"
 #include "clock_control.h"
 #include "flash.h"
+#include "digital.h"
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -26,7 +27,14 @@ void Setup(void);
 int main(void)
 {
     Setup();
-    Pin_Init();
+    Digital_OutputType OutputA5 =
+    {
+        .PortPin = PIN_A5,
+        .OutputType = PIN_OUT_TYPE_PUSH_PULL,
+        .Speed = PIN_SPEED_LOW,
+        .InitValHigh = true
+    };
+    Digital_OutputInit(&OutputA5);
 
     U64 TargetTime = SysTick_GetTicks() + 500U;
 
@@ -35,8 +43,15 @@ int main(void)
         const U64 Timestamp = SysTick_GetTicks();
         if (Timestamp >= TargetTime)
         {
-            Pin_GetPort(PIN_A5)->ODR ^= (1 << 5);
             TargetTime = Timestamp + 500U;
+            if (OutputA5.State == HIGH)
+            {
+                Digital_Clear(&OutputA5);
+            }
+            else
+            {
+                Digital_Set(&OutputA5);
+            }
         }
     }
 

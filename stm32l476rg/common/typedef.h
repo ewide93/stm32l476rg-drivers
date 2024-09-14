@@ -18,4 +18,13 @@ typedef int8_t S8;
 
 typedef float F32;
 
+/**
+ * @brief Generic return code enumeration.
+ */
+typedef enum
+{
+    RC_OK = 0x0U,
+    RC_ERROR = 0x1U
+} ReturnCodeEnum;
+
 #endif  /* TYPEDEF_H */

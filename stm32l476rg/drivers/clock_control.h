@@ -523,6 +523,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetAhbPrescaler(ClkCtrl_AhbPrescalerEnum Prescale
  */
 ClkCtrl_ReturnCodeEnum ClkCtrl_SetApbPrescaler(ClkCtrl_ApbEnum Bus, ClkCtrl_ApbPrescalerEnum Prescaler);
 
+
 /**
  * @brief Set the operating frequency of the MSI oscillator.
  * @param FreqRange Desired operating frequency [Hz].

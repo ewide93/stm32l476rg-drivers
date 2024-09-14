@@ -1,7 +1,7 @@
 /**
  * @file pin.h
  *
- * @brief GPIO configuration.
+ * @brief Pin configuration module.
  */
 
 #ifndef PIN_H
@@ -11,11 +11,15 @@
 #include "stm32l4xx.h"
 #include "typedef.h"
 
-/*  ---------------------------Structures & enumerations --------------------------- */
+/*  --------------------------- Preprocessor definitions --------------------------- */
+#define LQFP64
+
+/*  -------------------------- Structures & enumerations --------------------------- */
 
 /**
- * @brief Enumeration of MCU pins of the STM32L476RG.
+ * @brief Enumeration of MCU pins of the STM32L476RG in a LQFP64 package.
  */
+#if defined(LQFP64)
 typedef enum
 {
     PIN_A0 = 0xA0U,
@@ -62,17 +66,17 @@ typedef enum
     PIN_D2 = 0xD2U,
     PIN_ENUM_LIM = 0xFFU
 } Pin_PortPinEnum;
+#endif /* LQFP64 */
 
 /**
  * @brief Enumeration of I/O modes.
  */
 typedef enum
 {
-    PIN_MODE_INPUT,        /* Input */
-    PIN_MODE_OUTPUT,       /* Output */
-    PIN_MODE_AF,           /* Alternate function */
-    PIN_MODE_ANALOG,       /* Analog */
-    PIN_MODE_ENUM_LIM
+    PIN_MODE_INPUT = 0x0U,        /* Input */
+    PIN_MODE_OUTPUT = 0x1U,       /* Output */
+    PIN_MODE_AF = 0x2U,           /* Alternate function */
+    PIN_MODE_ANALOG = 0x3U        /* Analog */
 } Pin_ModeEnum;
 
 /**
@@ -80,9 +84,8 @@ typedef enum
  */
 typedef enum
 {
-    PIN_OUT_TYPE_PUSH_PULL,     /* Push-pull */
-    PIN_OUT_TYPE_OPEN_DRAIN,    /* Open drain */
-    PIN_OUT_TYPE_ENUM_LIM
+    PIN_OUT_TYPE_PUSH_PULL = 0x0U,     /* Push-pull */
+    PIN_OUT_TYPE_OPEN_DRAIN = 0x1U,    /* Open drain */
 } Pin_OutputTypeEnum;
 
 /**
@@ -91,11 +94,10 @@ typedef enum
  */
 typedef enum
 {
-    PIN_SPEED_LOW,          /* Rise/fall time = 17ns. BW = 20.6 MHz */
-    PIN_SPEED_MEDIUM,       /* Rise/fall time = 4.5ns, BW = 77.8 MHz */
-    PIN_SPEED_HIGH,         /* Rise/fall time = 2.5ns, BW = 140 MHz */
-    PIN_SPEED_VERY_HIGH,    /* Rise/fall time 3.3ns, BW = 106.1 MHz */
-    PIN_SPEED_ENUM_LIM
+    PIN_SPEED_LOW = 0x0U,          /* Rise/fall time = 17ns. BW = 20.6 MHz */
+    PIN_SPEED_MEDIUM = 0x1U,       /* Rise/fall time = 4.5ns, BW = 77.8 MHz */
+    PIN_SPEED_HIGH = 0x2U,         /* Rise/fall time = 2.5ns, BW = 140 MHz */
+    PIN_SPEED_VERY_HIGH = 0x3U,    /* Rise/fall time 3.3ns, BW = 106.1 MHz */
 } Pin_SpeedEnum;
 
 /**
@@ -103,10 +105,9 @@ typedef enum
  */
 typedef enum
 {
-    PIN_RES_NONE,          /* No pull-up/down resustor */
-    PIN_RES_PULL_UP,       /* Pull-up resistor */
-    PIN_RES_PULL_DOWN,     /* Pull-down resistor */
-    PIN_RES_ENUM_LIM
+    PIN_RES_NONE = 0x0U,          /* No pull-up/down resustor */
+    PIN_RES_PULL_UP = 0x1U,       /* Pull-up resistor */
+    PIN_RES_PULL_DOWN = 0x2U,     /* Pull-down resistor */
 } Pin_ResistorEnum;
 
 /**
@@ -130,7 +131,6 @@ typedef enum
     PIN_AF13,       /* SAI 1 & 2 (Serial audio interface) */
     PIN_AF14,       /* Timer 2, 15, 16, 17 & Low power timer 2 */
     PIN_AF15,       /* EVENTOUT, weird pulse thingy... */
-    PIN_AF_ENUM_LIM
 } Pin_AlternateFunctionEnum;
 
 /**
@@ -140,44 +140,77 @@ typedef enum
 {
     PIN_ANALOG_NOT_CONNECTED,       /* Pin is not connected to ADC circuitry */
     PIN_ANALOG_CONNECTED,           /* Pin is connected to ADC circuitry */
-    PIN_ANALOG_ENUM_LIM
 } Pin_AnalogEnum;
-
-/**
- * @brief Pin configuration structure.
- */
-typedef struct
-{
-    Pin_ModeEnum Mode;                  /* Pin mode */
-    Pin_OutputTypeEnum OutputType;      /* Output circuitry type */
-    Pin_SpeedEnum Speed;                /* Output dv/dt */
-    Pin_ResistorEnum Resistor;          /* Pull-up/down resistor settings */
-    Pin_AlternateFunctionEnum AltFunc;  /* Alternate function selection */
-    Pin_AnalogEnum Analog;              /* Analog/digital type */
-} Pin_ConfigType;
-
-/**
- * @brief GPIO-pin structure.
- */
-typedef struct
-{
-    Pin_ConfigType Config;              /* Configuration structure */
-    GPIO_TypeDef* Port;                 /* I/O port */
-    U32 Pin;                            /* Pin number */
-} Pin_PinType;
 
 /* ------------------------ External function declarations ------------------------- */
 
 /**
- * @brief Initialize GPIO pins in accordance with configuration table.
+ * @brief Configure the pin mode of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param Mode Pin mode.
  */
-void Pin_Init(void);
+void Pin_SetMode(Pin_PortPinEnum PortPin, Pin_ModeEnum Mode);
+
 
 /**
- * @brief Get the GPIO port based on the given port & pin enumeration.
- * @param PortPin Port & pin
- * @returns Pointer to GPIO port structure.
+ * @brief Configure the output type of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param OutType Output type.
  */
-GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin);
+void Pin_SetOutputType(Pin_PortPinEnum PortPin, Pin_OutputTypeEnum OutputType);
+
+
+/**
+ * @brief Configure the output speed of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param Speed Rise/fall time.
+ */
+void Pin_SetSpeed(Pin_PortPinEnum PortPin, Pin_SpeedEnum Speed);
+
+
+/**
+ * @brief Configure the pull-up/down circuitry of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param Resistor Configuration for pull-up/pull-down resistor.
+ */
+void Pin_SetResistor(Pin_PortPinEnum PortPin, Pin_ResistorEnum Resistor);
+
+
+/**
+ * @brief Configure the alternate function of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param AltFunc Alternate pin function.
+ */
+void Pin_SetAltFunc(Pin_PortPinEnum PortPin, Pin_AlternateFunctionEnum AltFunc);
+
+
+/**
+ * @brief Configure the analog settings of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @param Analog Analog configuration.
+ */
+void Pin_SetAnalog(Pin_PortPinEnum PortPin, Pin_AnalogEnum Analog);
+
+
+/**
+ * @brief Set the output data register bit of the given pin.
+ * @param PortPin Port & pin enumeration.
+ */
+void Pin_SetOutputData(Pin_PortPinEnum PortPin);
+
+
+/**
+ * @brief Clear the output data register bit of the given pin.
+ * @param PortPin Port & pin enumeration.
+ */
+void Pin_ClearOutputData(Pin_PortPinEnum PortPin);
+
+
+/**
+ * @brief Read the input data register bit of the given pin.
+ * @param PortPin Port & pin enumeration.
+ * @return True = high, false = low
+ */
+bool Pin_ReadInputData(Pin_PortPinEnum PortPin);
 
 #endif /* PIN_H */
