@@ -146,7 +146,7 @@ all: $(OUT_DIR)/$(TARGET).elf
 # Rule to flash the microcontroller using OpenOCD
 # -------------------------------------------------------------------------------------
 flash: $(OUT_DIR)/$(TARGET).elf
-	openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
+	@openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
 
 # -------------------------------------------------------------------------------------
 # Rule to produce .elf file

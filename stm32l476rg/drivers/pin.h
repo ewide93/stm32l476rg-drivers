@@ -209,8 +209,8 @@ void Pin_ClearOutputData(Pin_PortPinEnum PortPin);
 /**
  * @brief Read the input data register bit of the given pin.
  * @param PortPin Port & pin enumeration.
- * @return True = high, false = low
+ * @return True = high, False = low
  */
-bool Pin_ReadInputData(Pin_PortPinEnum PortPin);
+Bool Pin_ReadInputData(Pin_PortPinEnum PortPin);
 
 #endif /* PIN_H */

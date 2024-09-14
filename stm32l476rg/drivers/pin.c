@@ -140,7 +140,7 @@ void Pin_ClearOutputData(Pin_PortPinEnum PortPin)
 }
 
 
-bool Pin_ReadInputData(Pin_PortPinEnum PortPin)
+Bool Pin_ReadInputData(Pin_PortPinEnum PortPin)
 {
     const GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
     if (Port != NULL)
@@ -148,5 +148,5 @@ bool Pin_ReadInputData(Pin_PortPinEnum PortPin)
         const U8 Pin = Pin_GetPin(PortPin);
         return Port->IDR & (1 << Pin);
     }
-    return false;
+    return False;
 }

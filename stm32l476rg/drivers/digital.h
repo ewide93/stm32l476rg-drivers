@@ -33,7 +33,7 @@ typedef struct
     Pin_OutputTypeEnum OutputType;
     Pin_SpeedEnum Speed;
     Digital_StateEnum State;
-    bool InitValHigh;
+    Bool InitValHigh;
 } Digital_OutputType;
 
 /**
@@ -78,8 +78,8 @@ void Digital_Clear(Digital_OutputType* Output);
 /**
  * @brief Read the given digital input.
  * @param Input Pointer to digital output structure.
- * @return True = high, false = low
+ * @return True = high, False = low
  */
-bool Digital_Read(const Digital_InputType* Input);
+Bool Digital_Read(const Digital_InputType* Input);
 
 #endif /* DIGITAL_H */

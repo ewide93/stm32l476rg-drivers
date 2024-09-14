@@ -39,9 +39,9 @@ typedef struct
     U32 Pllsai2RFreq_Hz;
     ClkCtrl_SysclkInputEnum SysclkInput;
     ClkCtrl_PllInputEnum PllInput;
-    bool AhbPrescalerLocked;
-    bool Apb1PrescalerLocked;
-    bool Apb2PrescalerLocked;
+    Bool AhbPrescalerLocked;
+    Bool Apb1PrescalerLocked;
+    Bool Apb2PrescalerLocked;
 } ClkCtrl_ClockTreeType;
 
 /*  ------------------------- Private function prototypes -------------------------- */
@@ -69,9 +69,9 @@ static ClkCtrl_ClockTreeType ClockTree =
     .Pllsai2RFreq_Hz = 0UL,
     .SysclkInput = SYSCLK_INPUT_MSI,
     .PllInput = PLL_INPUT_NONE,
-    .AhbPrescalerLocked = false,
-    .Apb1PrescalerLocked = false,
-    .Apb2PrescalerLocked = false
+    .AhbPrescalerLocked = False,
+    .Apb1PrescalerLocked = False,
+    .Apb2PrescalerLocked = False
 };
 
 /*  ------------------------- Private function definitions ------------------------- */
@@ -493,7 +493,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetAhbPrescaler(ClkCtrl_AhbPrescalerEnum Prescale
     }
 
     ClockTree.HclkFreq_Hz = ClockTree.SysclkFreq_Hz / Divisor;
-    ClockTree.AhbPrescalerLocked = true;
+    ClockTree.AhbPrescalerLocked = True;
     return CC_OK;
 }
 
@@ -515,7 +515,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetApbPrescaler(ClkCtrl_ApbEnum Bus, ClkCtrl_ApbP
                 RCC->CFGR &= ~RCC_CFGR_PPRE1_Msk;
                 RCC->CFGR |= (Prescaler << RCC_CFGR_PPRE1_Pos);
                 ClockTree.Pclk1Freq_Hz = ClockTree.HclkFreq_Hz / Divisor;
-                ClockTree.Apb1PrescalerLocked = true;
+                ClockTree.Apb1PrescalerLocked = True;
             }
             else
             {
@@ -530,7 +530,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetApbPrescaler(ClkCtrl_ApbEnum Bus, ClkCtrl_ApbP
                 RCC->CFGR &= ~RCC_CFGR_PPRE2_Msk;
                 RCC->CFGR |= (Prescaler << RCC_CFGR_PPRE2_Pos);
                 ClockTree.Pclk2Freq_Hz = ClockTree.HclkFreq_Hz / Divisor;
-                ClockTree.Apb2PrescalerLocked = true;
+                ClockTree.Apb2PrescalerLocked = True;
             }
             else
             {

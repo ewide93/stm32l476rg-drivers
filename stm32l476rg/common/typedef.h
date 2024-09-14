@@ -17,6 +17,9 @@ typedef int16_t S16;
 typedef int8_t S8;
 
 typedef float F32;
+typedef bool Bool;
+#define True     (true)
+#define False    (false)
 
 /**
  * @brief Generic return code enumeration.
@@ -27,4 +30,4 @@ typedef enum
     RC_ERROR = 0x1U
 } ReturnCodeEnum;
 
-#endif  /* TYPEDEF_H */
+#endif /* TYPEDEF_H */

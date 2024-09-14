@@ -317,10 +317,10 @@ static inline void ClkCtrl_AwaitPllReady(ClkCtrl_PllEnum Pll)
 /**
  * @brief Enable the given PLL.
  * @param Pll The PLL to be enabled.
- * @param AwaitReadyFlag Set to true to await the ready flag after
+ * @param AwaitReadyFlag Set to True to await the ready flag after
  *                       enabling the PLL.
  */
-static inline void ClkCtrl_PllEnable(ClkCtrl_PllEnum Pll, bool AwaitReadyFlag)
+static inline void ClkCtrl_PllEnable(ClkCtrl_PllEnum Pll, Bool AwaitReadyFlag)
 {
     RCC->CR |= (1 << (31U - Pll));
     if (AwaitReadyFlag) { ClkCtrl_AwaitPllReady(Pll); }
@@ -340,9 +340,9 @@ static inline void ClkCtrl_PllDisable(ClkCtrl_PllEnum Pll)
 /**
  * @brief Read status of the given PLL.
  * @param Pll The PLL of interest.
- * @return True if enabled, false if disabled.
+ * @return True if enabled, False if disabled.
  */
-static inline bool ClkCtrl_PllEnabled(ClkCtrl_PllEnum Pll)
+static inline Bool ClkCtrl_PllEnabled(ClkCtrl_PllEnum Pll)
 {
     return RCC->CR & (1 << (31U - Pll));
 }
@@ -359,9 +359,9 @@ static inline void ClkCtrl_AwaitMsiReady(void)
 
 /**
  * @brief Enable the MSI oscillator.
- * @param AwaitReadyFlag Set to true to await the ready flag after enabling.
+ * @param AwaitReadyFlag Set to True to await the ready flag after enabling.
  */
-static inline void ClkCtrl_MsiEnable(bool AwaitReadyFlag)
+static inline void ClkCtrl_MsiEnable(Bool AwaitReadyFlag)
 {
     RCC->CR |= RCC_CR_MSION;
     if (AwaitReadyFlag) { ClkCtrl_AwaitMsiReady(); }
@@ -379,9 +379,9 @@ static inline void ClkCtrl_MsiDisable(void)
 
 /**
  * @brief Read the status of the MSI oscillator.
- * @returns True if enabled, false if disabled.
+ * @returns True if enabled, False if disabled.
  */
-static inline bool ClkCtrl_MsiEnabled(void)
+static inline Bool ClkCtrl_MsiEnabled(void)
 {
     return RCC->CR & RCC_CR_MSION;
 }
@@ -400,7 +400,7 @@ static inline void ClkCtrl_AwaitHsiReady(void)
  * @brief Enable the HSI oscillator.
  * @param AwaitReadyFlag Set to tru to await the ready flag after enabling.
  */
-static inline void ClkCtrl_HsiEnable(bool AwaitReadyFlag)
+static inline void ClkCtrl_HsiEnable(Bool AwaitReadyFlag)
 {
     RCC->CR |= RCC_CR_HSION;
     if (AwaitReadyFlag) { ClkCtrl_AwaitHsiReady(); }
@@ -418,9 +418,9 @@ static inline void ClkCtrl_HsiDisable(void)
 
 /**
  * @brief Read the status of the HSI oscillator.
- * @returns True if enabled, false if disabled.
+ * @returns True if enabled, False if disabled.
  */
-static inline bool ClkCtrl_HsiEnabled(void)
+static inline Bool ClkCtrl_HsiEnabled(void)
 {
     return RCC->CR & RCC_CR_HSION;
 }

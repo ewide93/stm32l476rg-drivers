@@ -41,7 +41,7 @@ void Digital_Clear(Digital_OutputType* Output)
 }
 
 
-bool Digital_Read(const Digital_InputType* Input)
+Bool Digital_Read(const Digital_InputType* Input)
 {
     return Pin_ReadInputData(Input->PortPin);
 }
