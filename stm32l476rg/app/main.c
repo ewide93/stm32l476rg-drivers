@@ -7,7 +7,7 @@
 
 /* Include directives */
 #include "typedef.h"
-#include "ST/stm32l4xx.h"
+#include "stm32l4xx.h"
 #include "systick.h"
 #include "pin.h"
 #include "clock_control.h"

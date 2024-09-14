@@ -5,13 +5,11 @@ from scripts.binutils import Binutils
 
 
 PATHS = {
-    "build_dir": Path("build"),
-    "obj_dir": Path("build/obj"),
-    "out_dir": Path("build/out"),
-    "elf": Path("build/out/STM32L476RG.elf"),
-    "makefile": Path("build/Makefile"),
-    "src_dir": Path("src"),
-    "inc_dir": Path("inc"),
+    "build_dir": Path("stm32l476rg/build"),
+    "obj_dir": Path("stm32l476rg/build/obj"),
+    "out_dir": Path("stm32l476rg/build/out"),
+    "elf": Path("stm32l476rg/build/out/STM32L476RG.elf"),
+    "makefile": Path("stm32l476rg/build/Makefile"),
 }
 
 DEVICE_INFO = {

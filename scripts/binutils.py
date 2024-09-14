@@ -56,22 +56,25 @@ class Binutils:
         """Parse output from arm-none-eabi-nm utility."""
         symbols = []
         for line in stdout.removesuffix("\n").split("\n"):
-            address, size, symbol_type, name, path_and_line_num = line.split()
-            _, file_path, line_num = path_and_line_num.split(":")
-            regex = re.compile(r"^.+\/([a-zA-Z_]+.c)$")
-            match = regex.match(file_path)
-            if match:
-                src_file = match.group(1)
-                symbols.append(
-                    cls.Symbol(
-                        name,
-                        hex(int(address, 16)),
-                        int(size, 16),
-                        symbol_type,
-                        src_file,
-                        int(line_num),
+            try:
+                address, size, symbol_type, name, path_and_line_num = line.split()
+                _, file_path, line_num = path_and_line_num.split(":")
+                regex = re.compile(r"^.+\/([a-zA-Z_]+.c)$")
+                match = regex.match(file_path)
+                if match:
+                    src_file = match.group(1)
+                    symbols.append(
+                        cls.Symbol(
+                            name,
+                            hex(int(address, 16)),
+                            int(size, 16),
+                            symbol_type,
+                            src_file,
+                            int(line_num),
+                        )
                     )
-                )
+            except ValueError:
+                continue
         src_files = []
         parsed_output = ""
         for symbol in sorted(symbols, key=lambda sym: sym.src_file):

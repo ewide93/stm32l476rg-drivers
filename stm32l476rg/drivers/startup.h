@@ -9,7 +9,7 @@
 
 /* ------------------------------- Include directives ------------------------------ */
 #include "typedef.h"
-#include "ST/stm32l476xx.h"
+#include "stm32l476xx.h"
 
 /* ------------------ Structures, enumerations & type definitions ------------------ */
 

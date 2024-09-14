@@ -1,12 +1,11 @@
 # Directories to ignore
 .venv/
 .vscode/
-build/obj/
-build/out/
-build/cppcheck_cache/
+**/build/obj/
+**/build/out/
+**/cppcheck_cache/
 
 # File extensions to ignore
 
 # Individual files to ignore
-*/cppcheck_suppressions.txt
-*/cppcheck_output.txt
+**/cppcheck_output.txt
