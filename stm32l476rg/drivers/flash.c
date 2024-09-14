@@ -9,10 +9,6 @@
 #include "flash.h"
 #include "critical_section.h"
 
-/* -------------------------------- Macro definitions ------------------------------ */
-
-/*  ---------------------------Structures & enumerations --------------------------- */
-
 /* -------------------------- Public function definitions -------------------------- */
 
 void Flash_SetFlashLatency(Flash_WaitStateEnum NofWaitStates)
