@@ -426,7 +426,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R)
     {
         case PLL_MAIN:
         {
-            TempRFreq_Hz = ClockTree.MainPllVcoOutFreq_Hz / R;
+            TempRFreq_Hz = ClockTree.MainPllVcoOutFreq_Hz / Divisor;
             if (TempRFreq_Hz <= PLLR_OUT_FREQ_MAX_Hz)
             {
                 RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLR_Msk;
@@ -441,7 +441,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R)
         }
         case PLL_SAI1:
         {
-            TempRFreq_Hz = ClockTree.Pllsai1VcoOutFreq_Hz / R;
+            TempRFreq_Hz = ClockTree.Pllsai1VcoOutFreq_Hz / Divisor;
             if (TempRFreq_Hz <= PLLR_OUT_FREQ_MAX_Hz)
             {
                 RCC->PLLSAI1CFGR &= ~RCC_PLLSAI1CFGR_PLLSAI1R_Msk;
@@ -456,7 +456,7 @@ ClkCtrl_ReturnCodeEnum ClkCtrl_SetPllR(ClkCtrl_PllEnum Pll, ClkCtrl_PllREnum R)
         }
         case PLL_SAI2:
         {
-            TempRFreq_Hz = ClockTree.Pllsai2VcoOutFreq_Hz / R;
+            TempRFreq_Hz = ClockTree.Pllsai2VcoOutFreq_Hz / Divisor;
             if (TempRFreq_Hz <= PLLR_OUT_FREQ_MAX_Hz)
             {
                 RCC->PLLSAI2CFGR &= ~RCC_PLLSAI2CFGR_PLLSAI2R_Msk;

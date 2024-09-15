@@ -24,6 +24,8 @@ typedef enum
 {
     PIN_A0 = 0xA0U,
     PIN_A1 = 0xA1U,
+    PIN_A2 = 0xA2U,
+    PIN_A3 = 0xA3U,
     PIN_A4 = 0xA4U,
     PIN_A5 = 0xA5U,
     PIN_A6 = 0xA6U,

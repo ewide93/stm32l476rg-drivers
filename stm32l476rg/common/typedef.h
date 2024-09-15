@@ -16,6 +16,8 @@ typedef int32_t S32;
 typedef int16_t S16;
 typedef int8_t S8;
 
+typedef char Char;
+
 typedef float F32;
 typedef bool Bool;
 #define True     (true)

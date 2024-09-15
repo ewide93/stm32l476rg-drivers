@@ -1,16 +1,13 @@
-//==================================================================================================
-//
-// File name: fifo.c
-//
-// Purpose: Implementation of circular data structure with a "First In, First Out" principle.
-//          Note: Wrap-around logic requires the size of the underlying buffer
-//                to be a power of two.
-//
-//==================================================================================================
+/**
+ * @file fifo.c
+ *
+ * @brief First In First Out buffer data structure.
+ * @note Wrap-around logic requires the size of the underlying buffer
+ *       to be a power of two.
+ */
 
-//==================================================================================================
-// Include directives
-//==================================================================================================
+/* ------------------------------- Include directives ------------------------------ */
+
 #include "fifo.h"
 
 /* -------------------------- Public function definitions -------------------------- */
