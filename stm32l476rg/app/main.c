@@ -28,6 +28,23 @@ void Setup(void);
 int main(void)
 {
     Setup();
+
+    Uart_ConfigType UartCfg =
+    {
+        .BaudRate = 115200,
+        .Oversampling = UART_OVERSAMPLING_16,
+        .SamplingMethod = UART_SAMPLING_3_BITS,
+        .Parity = UART_PARITY_NONE,
+        .WordLength = UART_WORD_LEN_8,
+        .StopBits = UART_STOP_BITS_1,
+        .RxPin = PIN_A3,
+        .TxPin = PIN_A2
+    };
+    Uart_HandleType Uart2 = Uart_Init(USART2, &UartCfg);
+    Uart_TxEnable(Uart2);
+    Uart_RxEnable(Uart2);
+    Uart_Enable(Uart2);
+
     Digital_OutputType OutputA5 =
     {
         .PortPin = PIN_A5,
@@ -39,14 +56,14 @@ int main(void)
 
     U64 TargetTime = SysTick_GetTicks() + 500U;
     Char x = 'A';
-    Uart_TransmitStringBlocking(USART2, "Booted up!\n");
+    Uart_TransmitString(Uart2, "Booted up!\n", 11);
 
     while (1)
     {
         const U64 Timestamp = SysTick_GetTicks();
         if (Timestamp >= TargetTime)
         {
-            Uart_TransmitByte(USART2, x);
+            Uart_TransmitString(Uart2, &x, 1);
             if (x++ > 'z') { x = 'A'; }
             TargetTime = Timestamp + 500U;
             if (OutputA5.State == HIGH)
@@ -87,21 +104,6 @@ void Setup(void)
 
     /* Basic setup for USART2 */
     ClkCtrl_PeripheralClockEnable(PCLK_USART2);
-    Uart_ConfigType UartCfg =
-    {
-        .BaudRate = 115200,
-        .Oversampling = UART_OVERSAMPLING_16,
-        .SamplingMethod = UART_SAMPLING_3_BITS,
-        .Parity = UART_PARITY_NONE,
-        .WordLength = UART_WORD_LEN_8,
-        .StopBits = UART_STOP_BITS_1,
-        .RxPin = PIN_A3,
-        .TxPin = PIN_A2
-    };
-    Uart_Init(USART2, &UartCfg);
-    Uart_TxEnable(USART2);
-    Uart_RxEnable(USART2);
-    Uart_Enable(USART2);
 
     /* Initialize SysTick with default configuration */
     const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();

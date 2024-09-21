@@ -8,13 +8,136 @@
 #include "uart.h"
 #include "clock_control.h"
 #include "pin.h"
+#include "fifo.h"
+#include "critical_section.h"
+
+/* ------------------------- Local preprocessor definitions ------------------------ */
+#define INVALID_IRQn    ((IRQn_Type)0xFFU)
+
+/*  -------------------------- Structures & enumerations --------------------------- */
+
+struct Uart_OpaqueHandleType
+{
+    USART_TypeDef* Instance;
+    FifoType* TxFifo;
+    U8* TxBuffer;
+    FifoType* RxFifo;
+    U8* RxBuffer;
+    Bool TxBusy;
+    Bool RxBusy;
+};
+
+/* --------------------------------- Local variables ------------------------------- */
+
+#if defined(USART1_ENABLE)
+static U8 Usart1TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Usart1RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Usart1TxFifo = { 0 };
+static FifoType Usart1RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Usart1Handle =
+{
+    .Instance = USART1,
+    .TxFifo = &Usart1TxFifo,
+    .TxBuffer = Usart1TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Usart1RxFifo,
+    .RxBuffer = Usart1RxBuffer,
+    .RxBusy = False,
+};
+#endif /* USART1_ENABLE */
+
+#if defined(USART2_ENABLE)
+static U8 Usart2TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Usart2RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Usart2TxFifo = { 0 };
+static FifoType Usart2RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Usart2Handle =
+{
+    .Instance = USART2,
+    .TxFifo = &Usart2TxFifo,
+    .TxBuffer = Usart2TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Usart2RxFifo,
+    .RxBuffer = Usart2RxBuffer,
+    .RxBusy = False,
+};
+#endif /* USART2_ENABLE */
+
+#if defined(USART3_ENABLE)
+static U8 Usart3TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Usart3RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Usart3TxFifo = { 0 };
+static FifoType Usart3RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Usart3Handle =
+{
+    .Instance = USART3,
+    .TxFifo = &Usart3TxFifo,
+    .TxBuffer = Usart3TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Usart3RxFifo,
+    .RxBuffer = Usart3RxBuffer,
+    .RxBusy = False,
+};
+#endif /* USART3_ENABLE */
+
+#if defined(UART4_ENABLE)
+static U8 Uart4TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Uart4RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Uart4TxFifo = { 0 };
+static FifoType Uart4RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Uart4Handle =
+{
+    .Instance = UART4,
+    .TxFifo = &Uart4TxFifo,
+    .TxBuffer = Uart4TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Uart4RxFifo,
+    .RxBuffer = Uart4RxBuffer,
+    .RxBusy = False,
+};
+#endif /* UART4_ENABLE */
+
+#if defined(UART5_ENABLE)
+static U8 Uart5TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Uart5RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Uart5TxFifo = { 0 };
+static FifoType Uart5RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Uart5Handle =
+{
+    .Instance = UART5,
+    .TxFifo = &Uart5TxFifo,
+    .TxBuffer = Uart5TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Uart5RxFifo,
+    .RxBuffer = Uart5RxBuffer,
+    .RxBusy = False,
+};
+#endif /* UART5_ENABLE */
+
+#if defined(LPUART1_ENABLE)
+static U8 Lpuart1TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
+static U8 Lpuart1RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
+static FifoType Lpuart1TxFifo = { 0 };
+static FifoType Lpuart1RxFifo = { 0 };
+static struct Uart_OpaqueHandleType Lpuart1Handle =
+{
+    .Instance = LPUART1,
+    .TxFifo = &Lpuart1TxFifo,
+    .TxBuffer = Lpuart1TxBuffer,
+    .TxBusy = False,
+    .RxFifo = &Lpuart1RxFifo,
+    .RxBuffer = Lpuart1RxBuffer,
+    .RxBusy = False,
+};
+#endif /* LPUART1_ENABLE */
+
 
 /* -------------------------- Private function definitions ------------------------- */
 
 /**
  * @brief Determine the alternate function mapping based on the
  *        given UART peripheral instance.
- * @param Uart Pointer to USART peripheral structure.
+ * @param Uart UART peripheral handle.
  * @return Alternate function mapping.
  */
 static inline Pin_AlternateFunctionEnum Uart_InstanceToAltFunc(const USART_TypeDef* Uart)
@@ -27,6 +150,61 @@ static inline Pin_AlternateFunctionEnum Uart_InstanceToAltFunc(const USART_TypeD
     {
         return PIN_AF8;
     }
+}
+
+
+/**
+ * @brief Determine the IRQ number matching the given UART
+ *        peripheral instance.
+ * @param Uart Pointer to USART peripheral structure.
+ * @return Matching IRQ number.
+ */
+static IRQn_Type Uart_InstanceToIrqNum(const USART_TypeDef* Uart)
+{
+    if      (Uart == USART1)  { return USART1_IRQn;  }
+    else if (Uart == USART2)  { return USART2_IRQn;  }
+    else if (Uart == USART3)  { return USART3_IRQn;  }
+    else if (Uart == UART4)   { return UART4_IRQn;   }
+    else if (Uart == UART5)   { return UART5_IRQn;   }
+    else if (Uart == LPUART1) { return LPUART1_IRQn; }
+    else                      { return INVALID_IRQn; }
+}
+
+
+/**
+ * @brief Determine the local handle to use for the given
+ *        USART peripheral instance.
+ * @param Uart Pointer to USART peripheral structure.
+ * @return Matching UART handle.
+ */
+static Uart_HandleType Uart_InstanceToHandle(const USART_TypeDef* Uart)
+{
+    #if defined(USART1_ENABLE)
+    if (Uart == USART1) { return &Usart1Handle; }
+    #endif /* USART1_ENABLE */
+
+    #if defined(USART2_ENABLE)
+    if (Uart == USART2) { return &Usart2Handle; }
+    #endif /* USART2_ENABLE */
+
+    #if defined(USART3_ENABLE)
+    if (Uart == USART3) { return &Usart3Handle; }
+    #endif /* USART#_ENABLE */
+
+    #if defined(UART4_ENABLE)
+    if (Uart == UART4) { return &Uart4Handle; }
+    #endif /* UART4_ENABLE */
+
+    #if defined(UART5_ENABLE)
+    if (Uart == UART5) { return &Uart5Handle; }
+    #endif /* UART5_ENABLE */
+
+    #if defined(LPUART1_ENABLE)
+    if (Uart == LPUART1) { return &Lpuart1Handle; }
+    #endif /* LPUART1_ENABLE */
+
+    /* Returns NULL if the desired peripheral is not enabled by preprocessor define */
+    return (struct Uart_OpaqueHandleType*)NULL;
 }
 
 
@@ -122,9 +300,51 @@ static inline void Uart_AwaitTxComplete(const USART_TypeDef* Uart)
     while ( !(Uart->ISR & USART_ISR_TC) ) { __NOP(); }
 }
 
+
+/**
+ * @brief Enable the transmit data register empty interrupt
+ *        for the given UART peripheral.
+ */
+
 /* -------------------------- Public function definitions -------------------------- */
 
-void Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
+void Uart_TxEnable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 |= USART_CR1_TE;
+}
+
+
+void Uart_TxDisable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 &= ~USART_CR1_TE;
+}
+
+
+void Uart_RxEnable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 |= USART_CR1_RE;
+}
+
+
+void Uart_RxDisable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 &= ~USART_CR1_RE;
+}
+
+
+void Uart_Enable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 |= USART_CR1_UE;
+}
+
+
+void Uart_Disable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 &= ~USART_CR1_UE;
+}
+
+
+Uart_HandleType Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
 {
     const Pin_AlternateFunctionEnum AltFunc = Uart_InstanceToAltFunc(Uart);
     Pin_SetMode(Config->TxPin, PIN_MODE_AF);
@@ -137,24 +357,92 @@ void Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
     Uart_SetOversampling(Uart, Config->Oversampling);
     Uart_SetSamplingMethod(Uart, Config->SamplingMethod);
     Uart_SetBaudRate(Uart, Config->BaudRate, Config->Oversampling);
-    /**
-     * @todo Enable interrupts?
-     */
+
+    /* Initialize Tx & Rx buffers */
+    struct Uart_OpaqueHandleType* const TempHandle = Uart_InstanceToHandle(Uart);
+    if (TempHandle == NULL) { return TempHandle; }
+    Fifo_Init(TempHandle->TxFifo, TempHandle->TxBuffer, UART_TX_BUFFER_SIZE);
+    Fifo_Init(TempHandle->RxFifo, TempHandle->RxBuffer, UART_RX_BUFFER_SIZE);
+
+    /* UART peripheral interrupt configuration */
+    Uart->CR1 |= USART_CR1_RXNEIE;
+
+    /* NVIC configuration */
+    const IRQn_Type Irq = Uart_InstanceToIrqNum(Uart);
+    NVIC_SetPriority(Irq, UART_IRQ_PRIO);
+    NVIC_EnableIRQ(Irq);
+    return TempHandle;
 }
 
 
-void Uart_TransmitByte(USART_TypeDef* Uart, U8 Data)
+void Uart_TransmitByteBlocking(Uart_HandleType Uart, U8 Data)
 {
-    Uart_AwaitTxComplete(Uart);
-    Uart->TDR = Data;
+    Uart_AwaitTxComplete(Uart->Instance);
+    Uart->Instance->TDR = Data;
 }
 
 
-void Uart_TransmitStringBlocking(USART_TypeDef* Uart, Char* Data)
+void Uart_TransmitStringBlocking(Uart_HandleType Uart, const Char* Data)
 {
     for (U8* DataPtr = (U8*)Data; *DataPtr != '\0'; DataPtr++)
     {
-        Uart_TransmitByte(Uart, *DataPtr);
-        if (*DataPtr == '\n') { Uart_TransmitByte(Uart, '\r'); }
+        Uart_TransmitByteBlocking(Uart, *DataPtr);
+        if (*DataPtr == '\n') { Uart_TransmitByteBlocking(Uart, '\r'); }
     }
 }
+
+
+Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
+{
+    if (Length > Fifo_GetNofAvailable(Uart->TxFifo)) { return False; }
+
+    CRITICAL_SECTION_ENTER;
+    for (U8 i = 0; i < Length; i++)
+    {
+        Fifo_WriteByte(Uart->TxFifo, (U8)Data[i]);
+    }
+    CRITICAL_SECTION_EXIT;
+
+    if (!Uart->TxBusy)
+    {
+        U8 TxData;
+        Fifo_ReadByte(Uart->TxFifo, &TxData);
+        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart->Instance->TDR = TxData;
+        Uart->TxBusy = True;
+    }
+    return True;
+}
+
+/* ------------------------------- Interrupt handlers ------------------------------ */
+
+/**
+ * @brief Interrupt handler for USART2.
+ */
+void USART2_IRQHandler(void)
+{
+    const U32 TempIsr = USART2->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        /* Do stuff */
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Usart2Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Usart2Handle.TxFifo, &TxData);
+            USART2->TDR = TxData;
+        }
+        else
+        {
+            Usart2Handle.TxBusy = False;
+            USART2->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+
