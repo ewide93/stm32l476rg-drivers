@@ -23,7 +23,7 @@ VPATH := $(dir $(SRC))
 OBJ := $(patsubst %.c,%.o,$(notdir $(SRC)))
 
 # Dependency files
-DEP := $(patsubst %.o,%.d,$(OBJ))
+DEP := $(patsubst %.o,$(OBJ_DIR)/%.d,$(OBJ))
 
 # -------------------------------------------------------------------------------------
 # Configuration of cross-compilation toolchain
