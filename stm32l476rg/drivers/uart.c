@@ -464,6 +464,43 @@ void Uart_RxBufferClear(Uart_HandleType Uart)
 /* ------------------------------- Interrupt handlers ------------------------------ */
 
 /**
+ * @brief Interrupt handler for USART1.
+ */
+#if defined(USART1_ENABLE)
+void USART1_IRQHandler(void)
+{
+    const U32 TempIsr = USART1->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        if (!Fifo_Full(Usart1Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(USART1->RDR & 0xFFUL);
+            Fifo_WriteByte(Usart1Handle.RxFifo, RxData);
+        }
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Usart1Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Usart1Handle.TxFifo, &TxData);
+            USART1->TDR = TxData;
+        }
+        else
+        {
+            Usart1Handle.TxBusy = False;
+            USART1->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+#endif /* USART1_ENABLE */
+
+
+/**
  * @brief Interrupt handler for USART2.
  */
 #if defined(USART2_ENABLE)
@@ -498,3 +535,151 @@ void USART2_IRQHandler(void)
     }
 }
 #endif /* USART2_ENABLE */
+
+
+/**
+ * @brief Interrupt handler for USART3.
+ */
+#if defined(USART3_ENABLE)
+void USART3_IRQHandler(void)
+{
+    const U32 TempIsr = USART3->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        if (!Fifo_Full(Usart3Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(USART3->RDR & 0xFFUL);
+            Fifo_WriteByte(Usart3Handle.RxFifo, RxData);
+        }
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Usart3Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Usart3Handle.TxFifo, &TxData);
+            USART3->TDR = TxData;
+        }
+        else
+        {
+            Usart3Handle.TxBusy = False;
+            USART3->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+#endif /* USART3_ENABLE */
+
+
+/**
+ * @brief Interrupt handler for UART4.
+ */
+#if defined(UART4_ENABLE)
+void UART4_IRQHandler(void)
+{
+    const U32 TempIsr = UART4->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        if (!Fifo_Full(Uart4Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(UART4->RDR & 0xFFUL);
+            Fifo_WriteByte(Uart4Handle.RxFifo, RxData);
+        }
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Uart4Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Uart4Handle.TxFifo, &TxData);
+            UART4->TDR = TxData;
+        }
+        else
+        {
+            Uart4Handle.TxBusy = False;
+            UART4->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+#endif /* UART4_ENABLE */
+
+
+/**
+ * @brief Interrupt handler for UART5.
+ */
+#if defined(UART5_ENABLE)
+void UART5_IRQHandler(void)
+{
+    const U32 TempIsr = UART5->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        if (!Fifo_Full(Uart5Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(UART5->RDR & 0xFFUL);
+            Fifo_WriteByte(Uart5Handle.RxFifo, RxData);
+        }
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Uart5Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Uart5Handle.TxFifo, &TxData);
+            UART5->TDR = TxData;
+        }
+        else
+        {
+            Uart5Handle.TxBusy = False;
+            UART5->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+#endif /* UART5_ENABLE */
+
+
+/**
+ * @brief Interrupt handler for LPUART1.
+ */
+#if defined(LPUART1_ENABLE)
+void LPUART1_IRQHandler(void)
+{
+    const U32 TempIsr = LPUART1->ISR;
+
+    /* Interrupt triggered by data reception */
+    if (TempIsr & USART_ISR_RXNE)
+    {
+        if (!Fifo_Full(Lpuart1Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(LPUART1->RDR & 0xFFUL);
+            Fifo_WriteByte(Lpuart1Handle.RxFifo, RxData);
+        }
+    }
+
+    /* Interrupt triggered by data transmission */
+    if (TempIsr & USART_ISR_TXE)
+    {
+        if (!Fifo_Empty(Lpuart1Handle.TxFifo))
+        {
+            U8 TxData;
+            Fifo_ReadByte(Lpuart1Handle.TxFifo, &TxData);
+            LPUART1->TDR = TxData;
+        }
+        else
+        {
+            Lpuart1Handle.TxBusy = False;
+            LPUART1->CR1 &= ~USART_CR1_TXEIE;
+        }
+    }
+}
+#endif /* UART4_ENABLE */
