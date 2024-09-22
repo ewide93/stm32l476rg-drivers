@@ -392,6 +392,26 @@ void Uart_TransmitStringBlocking(Uart_HandleType Uart, const Char* Data)
 }
 
 
+Bool Uart_TransmitChar(Uart_HandleType Uart, Char Data)
+{
+    if (Fifo_Full(Uart->TxFifo)) { return False; }
+
+    CRITICAL_SECTION_ENTER;
+    Fifo_WriteByte(Uart->TxFifo, (U8)Data);
+    CRITICAL_SECTION_EXIT;
+
+    if (!Uart->TxBusy)
+    {
+        U8 TxData;
+        Fifo_ReadByte(Uart->TxFifo, &TxData);
+        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart->Instance->TDR = TxData;
+        Uart->TxBusy = True;
+    }
+    return True;
+}
+
+
 Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
 {
     if (Length > Fifo_GetNofAvailable(Uart->TxFifo)) { return False; }
@@ -414,11 +434,39 @@ Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
     return True;
 }
 
+
+Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData)
+{
+    if (Fifo_Empty(Uart->RxFifo)) { return False; }
+
+    Fifo_ReadByte(Uart->RxFifo, (U8*)RxData);
+    return True;
+}
+
+
+Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length)
+{
+    if (Fifo_GetNofItems(Uart->RxFifo) < Length) { return False; }
+
+    for (U8 i = 0; i < Length; i++)
+    {
+        Fifo_ReadByte(Uart->RxFifo, &RxData[i]);
+    }
+    return True;
+}
+
+
+void Uart_RxBufferClear(Uart_HandleType Uart)
+{
+    Fifo_Clear(Uart->RxFifo, False);
+}
+
 /* ------------------------------- Interrupt handlers ------------------------------ */
 
 /**
  * @brief Interrupt handler for USART2.
  */
+#if defined(USART2_ENABLE)
 void USART2_IRQHandler(void)
 {
     const U32 TempIsr = USART2->ISR;
@@ -426,7 +474,11 @@ void USART2_IRQHandler(void)
     /* Interrupt triggered by data reception */
     if (TempIsr & USART_ISR_RXNE)
     {
-        /* Do stuff */
+        if (!Fifo_Full(Usart2Handle.RxFifo))
+        {
+            const U8 RxData = (U8)(USART2->RDR & 0xFFUL);
+            Fifo_WriteByte(Usart2Handle.RxFifo, RxData);
+        }
     }
 
     /* Interrupt triggered by data transmission */
@@ -445,4 +497,4 @@ void USART2_IRQHandler(void)
         }
     }
 }
-
+#endif /* USART2_ENABLE */

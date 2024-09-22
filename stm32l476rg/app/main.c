@@ -54,25 +54,20 @@ int main(void)
     };
     Digital_OutputInit(&OutputA5);
 
-    U64 TargetTime = SysTick_GetTicks() + 500U;
-    Char x = 'A';
     Uart_TransmitString(Uart2, "Booted up!\n", 11);
 
     while (1)
     {
-        const U64 Timestamp = SysTick_GetTicks();
-        if (Timestamp >= TargetTime)
+        Char RxData[16] = { 0 };
+        if (Uart_Recieve(Uart2, (U8*)RxData, 3))
         {
-            Uart_TransmitString(Uart2, &x, 1);
-            if (x++ > 'z') { x = 'A'; }
-            TargetTime = Timestamp + 500U;
-            if (OutputA5.State == HIGH)
-            {
-                Digital_Clear(&OutputA5);
-            }
-            else
+            if (RxData[0] =='S' && RxData[1] == 'e' && RxData[2] == 't')
             {
                 Digital_Set(&OutputA5);
+            }
+            if (RxData[0] =='C' && RxData[1] == 'l' && RxData[2] == 'r')
+            {
+                Digital_Clear(&OutputA5);
             }
         }
     }

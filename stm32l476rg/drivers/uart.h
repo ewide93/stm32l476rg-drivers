@@ -171,14 +171,53 @@ void Uart_TransmitStringBlocking(Uart_HandleType Uart, const Char* Data);
 
 
 /**
- * @brief Transmit the given string from the given UART peripheral
- *        in an interrupt-driven fashion.
+ * @brief Transmit the given character from the given
+ *        UART peripheral in an interrupt-driven fashion.
+ * @param Uart UART peripheral handle.
+ * @param Data Character to be transmitted.
+ * @return Boolean indicating if the data was successfully
+ *         added to the transmission queue.
+ */
+Bool Uart_TransmitChar(Uart_HandleType Uart, Char Data);
+
+
+/**
+ * @brief Transmit the given string from the given UART
+ *        peripheral in an interrupt-driven fashion.
  * @param Uart UART peripheral handle.
  * @param Data Data to be transmitted.
- * @param Length Number of characters to transmit.
  * @return Boolean indicating if the data was successfully
  *         added to the transmission queue.
  */
 Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length);
+
+
+/**
+ * @brief Recieve one character from the given UART peripheral.
+ * @param Uart UART peripheral handle.
+ * @param RxData Pointer to recieved data storage.
+ * @return Boolean indicating if the data was successfully
+ *         recieved.
+ */
+Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData);
+
+
+/**
+ * @brief Recieve the given number of bytes of data from the
+ *        given UART peripheral.
+ * @param Uart UART peripheral handle.
+ * @param RxData Pointer to recieved data storage.
+ * @param Length The desired amount of data to read.
+ * @return Boolean indicating if the data was successfully
+ *         recieved.
+ */
+Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length);
+
+
+/**
+ * @brief Clear the reciver buffer of the given UART.
+ * @param Uart UART peripheral handle.
+ */
+void Uart_RxBufferClear(Uart_HandleType Uart);
 
 #endif /* UART_H */
