@@ -1,3 +1,5 @@
+import os
+import re
 from invoke import task
 from invoke.context import Context
 from pathlib import Path
@@ -10,6 +12,9 @@ PATHS = {
     "out_dir": Path("stm32l476rg/build/out"),
     "elf": Path("stm32l476rg/build/out/STM32L476RG.elf"),
     "makefile": Path("stm32l476rg/build/Makefile"),
+    "test_dir": Path("stm32l476rg/test"),
+    "test_build_dir": Path("stm32l476rg/test/build"),
+    "test_results": Path("stm32l476rg/test/build/results.txt"),
 }
 
 DEVICE_INFO = {
@@ -76,3 +81,42 @@ def lint(ctx: Context) -> None:
             line_cnt += 1
     if line_cnt == 0:
         print("No errors detected!")
+
+
+def parse_test_results(results: Path) -> None:
+    failed_tests = []
+    test_cnt = 0
+    fail_cnt = 0
+    skip_cnt = 0
+    with open(results, mode="r") as istream:
+        regex = re.compile(r"^([0-9]+) Tests ([0-9]+) Failures ([0-9]+) Ignored$")
+        for line in istream:
+            match = regex.match(line.strip())
+            if match:
+                test_cnt += int(match.group(1))
+                fail_cnt += int(match.group(2))
+                skip_cnt += int(match.group(3))
+            if ":FAIL:" in line:
+                file, line_num, test_case, _, msg = line.strip().split(":")
+                failed_tests.append(f"{test_case} at line {line_num} in {file}:\n\t{msg}")
+    pass_cnt = test_cnt - fail_cnt - skip_cnt
+    print("\n-- Results: Unit tests ".ljust(88, "-"))
+    parsed_results = f"Passed: {pass_cnt} ({round((pass_cnt / test_cnt) * 100, 1)}%)\t"
+    parsed_results += f"Failed: {fail_cnt} ({round((fail_cnt / test_cnt) * 100, 1)}%)\t"
+    parsed_results += f"Skipped: {skip_cnt} ({round((skip_cnt / test_cnt) * 100, 1)}%)\t\n"
+    print(parsed_results)
+    if failed_tests:
+        print("-- Failed tests: ".ljust(88, "-"))
+        for failed_test in failed_tests:
+            print(failed_test)
+        print("\n")
+
+
+@task
+def test(ctx: Context) -> None:
+    """Build & run unit tests."""
+    with ctx.cd(PATHS["test_dir"]):
+        ctx.run("make")
+    parse_test_results(PATHS["test_results"])
+    with ctx.cd(PATHS["test_dir"]):
+        ctx.run("make clean")

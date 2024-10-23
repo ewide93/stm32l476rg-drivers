@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if !defined(UNIT_TEST)
 #define NULL ((void*)0)
+#endif  /* UNIT_TEST */
 
 typedef uint64_t U64;
 typedef uint32_t U32;

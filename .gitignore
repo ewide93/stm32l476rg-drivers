@@ -4,6 +4,7 @@
 **/build/obj/
 **/build/out/
 **/cppcheck_cache/
+**/test/build/**
 
 # File extensions to ignore
 
