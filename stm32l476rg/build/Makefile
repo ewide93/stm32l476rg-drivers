@@ -77,6 +77,7 @@ LDFLAGS := $(MCUFLAGS)
 LDFLAGS += -T$(LINKER_SCRIPT)
 LDFLAGS += -nostartfiles
 LDFLAGS += -nostdlib
+LDFLAGS += -nolibc
 LDFLAGS += -lgcc
 LDFLAGS += -Wl,-Map=$(OUT_DIR)/$(TARGET).map
 LDFLAGS += -Wl,--cref
