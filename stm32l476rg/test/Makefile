@@ -15,6 +15,7 @@ DRIVERS_DIR := ../drivers
 # Define unit test runner executables.
 # -------------------------------------------------------------------------------------
 TESTRUNNERS := $(UNIT_TEST_BUILD_DIR)/test_fifo.exe
+TESTRUNNERS += $(UNIT_TEST_BUILD_DIR)/test_mempool.exe
 
 # -------------------------------------------------------------------------------------
 # Native toolchain configuration.
@@ -39,7 +40,7 @@ WFLAGS += -Werror
 .PHONY: all
 all: $(TESTRUNNERS)
 	@echo "Successfully compiled test runners..."
-	@$(foreach RUNNER,$^,$(RUNNER) >> $(UNIT_TEST_RESULTS) 2>&1 || true)
+	@$(foreach RUNNER,$^,$(shell $(RUNNER) >> $(UNIT_TEST_RESULTS) 2>&1 || true))
 
 # -------------------------------------------------------------------------------------
 # Rule to build test runner for fifo module unit tests.
@@ -47,6 +48,13 @@ all: $(TESTRUNNERS)
 $(UNIT_TEST_BUILD_DIR)/test_fifo.exe: test_fifo.c $(COMMON_DIR)/fifo.c $(UNITY_SRC)
 	@echo "Compiling unit test runner $(notdir $@)..."
 	@$(CC) $(CFLAGS) $(WFLAGS) $^ -o $@
+
+# -------------------------------------------------------------------------------------
+# Rule to build test runner for mempool module unit tests.
+# -------------------------------------------------------------------------------------
+$(UNIT_TEST_BUILD_DIR)/test_mempool.exe: test_mempool.c $(COMMON_DIR)/mempool.c $(UNITY_SRC)
+	@echo "Compiling unit test runner $(notdir $@)..."
+	@$(CC) $(CFLAGS) -Wno-unused-variable $(WFLAGS) $^ -o $@
 
 # -------------------------------------------------------------------------------------
 # Rule to clean build directory.

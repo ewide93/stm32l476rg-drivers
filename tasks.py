@@ -1,4 +1,4 @@
-import os
+import sys
 import re
 from invoke import task
 from invoke.context import Context
@@ -83,11 +83,12 @@ def lint(ctx: Context) -> None:
         print("No errors detected!")
 
 
-def parse_test_results(results: Path) -> None:
+def parse_test_results(results: Path) -> int:
     failed_tests = []
     test_cnt = 0
     fail_cnt = 0
     skip_cnt = 0
+    return_code = 0
     with open(results, mode="r") as istream:
         regex = re.compile(r"^([0-9]+) Tests ([0-9]+) Failures ([0-9]+) Ignored$")
         for line in istream:
@@ -106,10 +107,12 @@ def parse_test_results(results: Path) -> None:
     parsed_results += f"Skipped: {skip_cnt} ({round((skip_cnt / test_cnt) * 100, 1)}%)\t\n"
     print(parsed_results)
     if failed_tests:
+        return_code = -1
         print("-- Failed tests: ".ljust(88, "-"))
         for failed_test in failed_tests:
             print(failed_test)
         print("\n")
+    return return_code
 
 
 @task
@@ -117,6 +120,7 @@ def test(ctx: Context) -> None:
     """Build & run unit tests."""
     with ctx.cd(PATHS["test_dir"]):
         ctx.run("make")
-    parse_test_results(PATHS["test_results"])
+    return_code = parse_test_results(PATHS["test_results"])
     with ctx.cd(PATHS["test_dir"]):
         ctx.run("make clean")
+    sys.exit(return_code)
