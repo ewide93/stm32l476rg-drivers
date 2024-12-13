@@ -29,6 +29,19 @@ static Bool ModuleInitialized = False;
 
 
 /**
+ * @brief Check if the given address is within the buffer
+ *        managed by this module.
+ * @param Address Address to be checked.
+ * @return True = Address is in the managed buffer,
+ *         False = Address is not in the managed buffer.
+ */
+static Bool MemPool_AddressIsValid(void* Address)
+{
+    return ((U8*)Address >= FirstChunk) && ((U8*)Address <= LastChunk);
+}
+
+
+/**
  * @brief Calculate the required number of chunks for the given size.
  * @param Size Number of desired bytes to allocate.
  * @return Number of chunks required for the allocation.
@@ -101,17 +114,14 @@ static S8 MemPool_GetAllocationIndex(U8 ChunksRequired)
 static void* MemPool_AllocateSingleChunk(void)
 {
     void* ChunkPtr = NULL;
-    if (ChunksAvailable > 0)
+    for (U8 i = 0; i < NOF_CHUNKS; i++)
     {
-        for (U8 i = 0; i < NOF_CHUNKS; i++)
+        if (Chunks[i].Status == CHUNK_STATUS_FREE)
         {
-            if (Chunks[i].Status == CHUNK_STATUS_FREE)
-            {
-                ChunkPtr = (void*)&MemoryPool[i * CHUNK_SIZE];
-                Chunks[i].Status = CHUNK_STATUS_ALLOC_STANDALONE;
-                ChunksAvailable--;
-                break;
-            }
+            ChunkPtr = (void*)&MemoryPool[i * CHUNK_SIZE];
+            Chunks[i].Status = CHUNK_STATUS_ALLOC_STANDALONE;
+            ChunksAvailable--;
+            break;
         }
     }
     return ChunkPtr;
@@ -192,9 +202,9 @@ void* MemPool_Allocate(U16 Size)
 void MemPool_Free(void* Address)
 {
     if (!ModuleInitialized) { return; }
+    if (!MemPool_AddressIsValid(Address)) { return; }
 
     const U8* ChunkPtr = (U8*)Address;
-    if (ChunkPtr < FirstChunk || ChunkPtr > LastChunk) { return; }
     Bool Done = False;
     Bool MultiChunk = False;
 

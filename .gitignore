@@ -1,5 +1,6 @@
 # Directories to ignore
 .venv/
+__pycache__
 .vscode/
 **/build/obj/
 **/build/out/
