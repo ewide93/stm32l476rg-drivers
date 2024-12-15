@@ -100,7 +100,7 @@ typedef struct
  */
 typedef struct Uart_OpaqueHandleType* Uart_HandleType;
 
-/* ------------------------- Public function definitions --------------------------- */
+/* -------------------------- Public function prototypes --------------------------- */
 
 /**
  * @brief Enable the transmitter for the given UART peripheral.

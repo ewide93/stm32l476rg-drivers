@@ -14,6 +14,7 @@
 #include "flash.h"
 #include "digital.h"
 #include "uart.h"
+#include "crc.h"
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -55,6 +56,14 @@ int main(void)
     Digital_OutputInit(&OutputA5);
 
     Uart_TransmitString(Uart2, "Booted up!\n", 11);
+
+    Crc_Enable();
+    Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
+    Crc_Crc8Init(&Crc8Cfg);
+
+    const U8 DummyBuffer[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99 };
+    U8 DummyCrc = Crc_CalcCrc8(DummyBuffer, sizeof(DummyBuffer) / sizeof(DummyBuffer[0]));
+    Uart_TransmitChar(Uart2, DummyCrc);
 
     while (1)
     {
