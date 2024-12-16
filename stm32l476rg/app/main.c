@@ -15,6 +15,7 @@
 #include "digital.h"
 #include "uart.h"
 #include "crc.h"
+#include "protocol.h"
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -29,56 +30,23 @@ void Setup(void);
 int main(void)
 {
     Setup();
-
-    Uart_ConfigType UartCfg =
-    {
-        .BaudRate = 115200,
-        .Oversampling = UART_OVERSAMPLING_16,
-        .SamplingMethod = UART_SAMPLING_3_BITS,
-        .Parity = UART_PARITY_NONE,
-        .WordLength = UART_WORD_LEN_8,
-        .StopBits = UART_STOP_BITS_1,
-        .RxPin = PIN_A3,
-        .TxPin = PIN_A2
-    };
-    Uart_HandleType Uart2 = Uart_Init(USART2, &UartCfg);
-    Uart_TxEnable(Uart2);
-    Uart_RxEnable(Uart2);
-    Uart_Enable(Uart2);
+    Crc_Enable();
+    Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
+    Crc_Crc8Init(&Crc8Cfg);
+    Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
 
     Digital_OutputType OutputA5 =
     {
         .PortPin = PIN_A5,
         .OutputType = PIN_OUT_TYPE_PUSH_PULL,
         .Speed = PIN_SPEED_LOW,
-        .InitValHigh = True
+        .InitValHigh = False
     };
     Digital_OutputInit(&OutputA5);
 
-    Uart_TransmitString(Uart2, "Booted up!\n", 11);
-
-    Crc_Enable();
-    Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
-    Crc_Crc8Init(&Crc8Cfg);
-
-    const U8 DummyBuffer[] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99 };
-    U8 DummyCrc = Crc_CalcCrc8(DummyBuffer, sizeof(DummyBuffer) / sizeof(DummyBuffer[0]));
-    Uart_TransmitChar(Uart2, DummyCrc);
-
     while (1)
     {
-        Char RxData[16] = { 0 };
-        if (Uart_Recieve(Uart2, (U8*)RxData, 3))
-        {
-            if (RxData[0] =='S' && RxData[1] == 'e' && RxData[2] == 't')
-            {
-                Digital_Set(&OutputA5);
-            }
-            if (RxData[0] =='C' && RxData[1] == 'l' && RxData[2] == 'r')
-            {
-                Digital_Clear(&OutputA5);
-            }
-        }
+        Protocol_Run();
     }
 
     return 0;

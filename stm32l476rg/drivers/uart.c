@@ -403,7 +403,9 @@ Bool Uart_TransmitChar(Uart_HandleType Uart, Char Data)
     if (!Uart->TxBusy)
     {
         U8 TxData;
+        CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->TxFifo, &TxData);
+        CRITICAL_SECTION_EXIT;
         Uart->Instance->CR1 |= USART_CR1_TXEIE;
         Uart->Instance->TDR = TxData;
         Uart->TxBusy = True;
@@ -416,17 +418,19 @@ Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
 {
     if (Length > Fifo_GetNofAvailable(Uart->TxFifo)) { return False; }
 
-    CRITICAL_SECTION_ENTER;
     for (U8 i = 0; i < Length; i++)
     {
+        CRITICAL_SECTION_ENTER;
         Fifo_WriteByte(Uart->TxFifo, (U8)Data[i]);
+        CRITICAL_SECTION_EXIT;
     }
-    CRITICAL_SECTION_EXIT;
 
     if (!Uart->TxBusy)
     {
         U8 TxData;
+        CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->TxFifo, &TxData);
+        CRITICAL_SECTION_EXIT;
         Uart->Instance->CR1 |= USART_CR1_TXEIE;
         Uart->Instance->TDR = TxData;
         Uart->TxBusy = True;
@@ -439,7 +443,9 @@ Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData)
 {
     if (Fifo_Empty(Uart->RxFifo)) { return False; }
 
+    CRITICAL_SECTION_ENTER;
     Fifo_ReadByte(Uart->RxFifo, (U8*)RxData);
+    CRITICAL_SECTION_EXIT;
     return True;
 }
 
@@ -450,7 +456,33 @@ Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length)
 
     for (U8 i = 0; i < Length; i++)
     {
+        CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->RxFifo, &RxData[i]);
+        CRITICAL_SECTION_EXIT;
+    }
+    return True;
+}
+
+Bool Uart_Transmit(Uart_HandleType Uart, const U8* Data, U8 Length)
+{
+    if (Length > Fifo_GetNofAvailable(Uart->TxFifo)) { return False; }
+
+    for (U8 i = 0; i < Length; i++)
+    {
+        CRITICAL_SECTION_ENTER;
+        Fifo_WriteByte(Uart->TxFifo, Data[i]);
+        CRITICAL_SECTION_EXIT;
+    }
+
+    if (!Uart->TxBusy)
+    {
+        U8 TxData;
+        CRITICAL_SECTION_ENTER;
+        Fifo_ReadByte(Uart->TxFifo, &TxData);
+        CRITICAL_SECTION_EXIT;
+        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart->Instance->TDR = TxData;
+        Uart->TxBusy = True;
     }
     return True;
 }
@@ -458,8 +490,21 @@ Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length)
 
 void Uart_RxBufferClear(Uart_HandleType Uart)
 {
+    CRITICAL_SECTION_ENTER;
     Fifo_Clear(Uart->RxFifo, False);
+    CRITICAL_SECTION_EXIT;
 }
+
+U8 Uart_GetNofInputBufferBytes(Uart_HandleType Uart)
+{
+    return Uart->RxFifo->NofItems;
+}
+
+U8 Uart_GetNofOutputBufferBytes(Uart_HandleType Uart)
+{
+    return Uart->TxFifo->NofItems;
+}
+
 
 /* ------------------------------- Interrupt handlers ------------------------------ */
 

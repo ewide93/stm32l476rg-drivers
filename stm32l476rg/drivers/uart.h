@@ -213,11 +213,33 @@ Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData);
  */
 Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length);
 
+/**
+ * @brief Transmit the given number of bytes of data from the
+ *        given UART peripheral.
+ * @param Uart UART peripheral handle.
+ * @param TxData Pointer to transmission data storage.
+ * @param Length The desired amount of data to send.
+ * @return Boolean indicating if the data was successfully
+ *         transmitted.
+ */
+Bool Uart_Transmit(Uart_HandleType Uart, const U8* Data, U8 Length);
 
 /**
  * @brief Clear the reciver buffer of the given UART.
  * @param Uart UART peripheral handle.
  */
 void Uart_RxBufferClear(Uart_HandleType Uart);
+
+/**
+ * @brief Get the number of bytes in the input buffer of the given UART peripheral.
+ * @return Number of unread bytes in the input buffer.
+ */
+U8 Uart_GetNofInputBufferBytes(Uart_HandleType Uart);
+
+/**
+ * @brief Get the number of bytes in the output buffer of the given UART peripheral.
+ * @return Number of unread bytes in the output buffer.
+ */
+U8 Uart_GetNofOutputBufferBytes(Uart_HandleType Uart);
 
 #endif /* UART_H */
