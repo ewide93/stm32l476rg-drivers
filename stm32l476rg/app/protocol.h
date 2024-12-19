@@ -39,6 +39,7 @@ typedef __PACKED_STRUCT
     U8 Payload[MSG_PAYLOAD_SIZE];
     U8 Crc;
 } Protocol_MessageType;
+StaticAssert(sizeof(Protocol_MessageType) == 10U, "Unwanted padding Protocol_MessageType");
 
 /* -------------------------- Public function prototypes --------------------------- */
 

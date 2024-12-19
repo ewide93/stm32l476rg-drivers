@@ -25,6 +25,12 @@ typedef bool Bool;
 #define True     (true)
 #define False    (false)
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define StaticAssert(Condition, Message) _Static_assert(Condition, Message)
+#else
+#error "Use of static assertions requires C11 or greater."
+#endif
+
 /**
  * @brief Generic return code enumeration.
  */
