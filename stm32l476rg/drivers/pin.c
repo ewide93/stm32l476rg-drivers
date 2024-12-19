@@ -28,7 +28,6 @@ static GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin)
     return NULL;
 }
 
-
 /**
  * @brief Get the pin number based on the given port & pin enumeration.
  * @param PortPin Port & pin enumeration.
@@ -53,7 +52,6 @@ void Pin_SetMode(Pin_PortPinEnum PortPin, Pin_ModeEnum Mode)
     }
 }
 
-
 void Pin_SetOutputType(Pin_PortPinEnum PortPin, Pin_OutputTypeEnum OutputType)
 {
     GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
@@ -64,7 +62,6 @@ void Pin_SetOutputType(Pin_PortPinEnum PortPin, Pin_OutputTypeEnum OutputType)
         Port->OTYPER |= (OutputType << Pin);
     }
 }
-
 
 void Pin_SetSpeed(Pin_PortPinEnum PortPin, Pin_SpeedEnum Speed)
 {
@@ -78,7 +75,6 @@ void Pin_SetSpeed(Pin_PortPinEnum PortPin, Pin_SpeedEnum Speed)
     }
 }
 
-
 void Pin_SetResistor(Pin_PortPinEnum PortPin, Pin_ResistorEnum Resistor)
 {
     GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
@@ -90,7 +86,6 @@ void Pin_SetResistor(Pin_PortPinEnum PortPin, Pin_ResistorEnum Resistor)
         Port->PUPDR |= (Resistor << Shift);
     }
 }
-
 
 void Pin_SetAltFunc(Pin_PortPinEnum PortPin, Pin_AlternateFunctionEnum AltFunc)
 {
@@ -105,7 +100,6 @@ void Pin_SetAltFunc(Pin_PortPinEnum PortPin, Pin_AlternateFunctionEnum AltFunc)
     }
 }
 
-
 void Pin_SetAnalog(Pin_PortPinEnum PortPin, Pin_AnalogEnum Analog)
 {
     GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
@@ -117,17 +111,15 @@ void Pin_SetAnalog(Pin_PortPinEnum PortPin, Pin_AnalogEnum Analog)
     }
 }
 
-
 void Pin_SetOutputData(Pin_PortPinEnum PortPin)
 {
     GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
     if (Port != NULL)
     {
         const U8 Pin = Pin_GetPin(PortPin);
-        Port->BSRR |= (1 << Pin);
+        Port->BSRR = (1 << Pin);
     }
 }
-
 
 void Pin_ClearOutputData(Pin_PortPinEnum PortPin)
 {
@@ -135,10 +127,20 @@ void Pin_ClearOutputData(Pin_PortPinEnum PortPin)
     if (Port != NULL)
     {
         const U8 Pin = Pin_GetPin(PortPin);
-        Port->BSRR |= (1 << (Pin + 16U));
+        Port->BSRR = (1 << (Pin + 16U));
     }
 }
 
+void Pin_ToggleOutputData(Pin_PortPinEnum PortPin)
+{
+    GPIO_TypeDef* const Port = Pin_GetPort(PortPin);
+    if (Port != NULL)
+    {
+        const U8 Pin = Pin_GetPin(PortPin);
+        if (Port->ODR & (1 << Pin)) { Port->BSRR = (1 << (Pin + 16U)); }
+        else { Port->BSRR = (1 << Pin); }
+    }
+}
 
 Bool Pin_ReadInputData(Pin_PortPinEnum PortPin)
 {

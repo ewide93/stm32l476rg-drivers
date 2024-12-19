@@ -32,8 +32,7 @@ typedef struct
     Pin_PortPinEnum PortPin;
     Pin_OutputTypeEnum OutputType;
     Pin_SpeedEnum Speed;
-    Digital_StateEnum State;
-    Bool InitValHigh;
+    Digital_StateEnum InitVal;
 } Digital_OutputType;
 
 /**
@@ -51,8 +50,7 @@ typedef struct
  * @brief Initialize the given digital output.
  * @param Output Pointer to digital output structure.
  */
-void Digital_OutputInit(Digital_OutputType* Output);
-
+void Digital_OutputInit(const Digital_OutputType* Output);
 
 /**
  * @brief Initialize the given digital input.
@@ -60,20 +58,23 @@ void Digital_OutputInit(Digital_OutputType* Output);
  */
 void Digital_InputInit(const Digital_InputType* Input);
 
-
 /**
  * @brief Set the given digital output.
  * @param Output Pointer to digital output structure.
  */
-void Digital_Set(Digital_OutputType* Output);
-
+void Digital_Set(const Digital_OutputType* Output);
 
 /**
  * @brief Clear the given digital output.
  * @param Output Pointer to digital output structure.
  */
-void Digital_Clear(Digital_OutputType* Output);
+void Digital_Clear(const Digital_OutputType* Output);
 
+/**
+ * @brief Toggle the given digital output.
+ * @param Output Pointer to digital output structure.
+ */
+void Digital_Toggle(const Digital_OutputType* Output);
 
 /**
  * @brief Read the given digital input.

@@ -153,14 +153,12 @@ typedef enum
  */
 void Pin_SetMode(Pin_PortPinEnum PortPin, Pin_ModeEnum Mode);
 
-
 /**
  * @brief Configure the output type of the given pin.
  * @param PortPin Port & pin enumeration.
  * @param OutType Output type.
  */
 void Pin_SetOutputType(Pin_PortPinEnum PortPin, Pin_OutputTypeEnum OutputType);
-
 
 /**
  * @brief Configure the output speed of the given pin.
@@ -169,14 +167,12 @@ void Pin_SetOutputType(Pin_PortPinEnum PortPin, Pin_OutputTypeEnum OutputType);
  */
 void Pin_SetSpeed(Pin_PortPinEnum PortPin, Pin_SpeedEnum Speed);
 
-
 /**
  * @brief Configure the pull-up/down circuitry of the given pin.
  * @param PortPin Port & pin enumeration.
  * @param Resistor Configuration for pull-up/pull-down resistor.
  */
 void Pin_SetResistor(Pin_PortPinEnum PortPin, Pin_ResistorEnum Resistor);
-
 
 /**
  * @brief Configure the alternate function of the given pin.
@@ -185,7 +181,6 @@ void Pin_SetResistor(Pin_PortPinEnum PortPin, Pin_ResistorEnum Resistor);
  */
 void Pin_SetAltFunc(Pin_PortPinEnum PortPin, Pin_AlternateFunctionEnum AltFunc);
 
-
 /**
  * @brief Configure the analog settings of the given pin.
  * @param PortPin Port & pin enumeration.
@@ -193,13 +188,11 @@ void Pin_SetAltFunc(Pin_PortPinEnum PortPin, Pin_AlternateFunctionEnum AltFunc);
  */
 void Pin_SetAnalog(Pin_PortPinEnum PortPin, Pin_AnalogEnum Analog);
 
-
 /**
  * @brief Set the output data register bit of the given pin.
  * @param PortPin Port & pin enumeration.
  */
 void Pin_SetOutputData(Pin_PortPinEnum PortPin);
-
 
 /**
  * @brief Clear the output data register bit of the given pin.
@@ -207,6 +200,11 @@ void Pin_SetOutputData(Pin_PortPinEnum PortPin);
  */
 void Pin_ClearOutputData(Pin_PortPinEnum PortPin);
 
+/**
+ * @brief Toggle the output data register bit of the given pin.
+ * @param PortPin Port & pin enumeration.
+ */
+void Pin_ToggleOutputData(Pin_PortPinEnum PortPin);
 
 /**
  * @brief Read the input data register bit of the given pin.

@@ -10,15 +10,14 @@
 
 /* -------------------------- Public function definitions -------------------------- */
 
-void Digital_OutputInit(Digital_OutputType* Output)
+void Digital_OutputInit(const Digital_OutputType* Output)
 {
     Pin_SetMode(Output->PortPin, PIN_MODE_OUTPUT);
     Pin_SetOutputType(Output->PortPin, Output->OutputType);
     Pin_SetSpeed(Output->PortPin, Output->Speed);
-    if (Output->InitValHigh) { Digital_Set(Output); }
-    else { Output->State = LOW; }
+    if (Output->InitVal == HIGH) { Digital_Set(Output); }
+    else { Digital_Clear(Output); }
 }
-
 
 void Digital_InputInit(const Digital_InputType* Input)
 {
@@ -26,20 +25,20 @@ void Digital_InputInit(const Digital_InputType* Input)
     Pin_SetResistor(Input->PortPin, Input->Resistor);
 }
 
-
-void Digital_Set(Digital_OutputType* Output)
+void Digital_Set(const Digital_OutputType* Output)
 {
     Pin_SetOutputData(Output->PortPin);
-    Output->State = HIGH;
 }
 
-
-void Digital_Clear(Digital_OutputType* Output)
+void Digital_Clear(const Digital_OutputType* Output)
 {
     Pin_ClearOutputData(Output->PortPin);
-    Output->State = LOW;
 }
 
+void Digital_Toggle(const Digital_OutputType* Output)
+{
+    Pin_ToggleOutputData(Output->PortPin);
+}
 
 Bool Digital_Read(const Digital_InputType* Input)
 {

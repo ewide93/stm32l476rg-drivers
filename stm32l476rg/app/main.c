@@ -40,13 +40,19 @@ int main(void)
         .PortPin = PIN_A5,
         .OutputType = PIN_OUT_TYPE_PUSH_PULL,
         .Speed = PIN_SPEED_LOW,
-        .InitValHigh = False
+        .InitVal = HIGH
     };
     Digital_OutputInit(&OutputA5);
 
     while (1)
     {
+        static U64 Target = 250U;
         Protocol_Run();
+        if (SysTick_GetTicks() >= Target)
+        {
+            Digital_Toggle(&OutputA5);
+            Target += 250U;
+        }
     }
 
     return 0;
