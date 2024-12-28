@@ -46,7 +46,7 @@ int main(void)
 
     while (1)
     {
-        static U64 Target = 250U;
+        static U32 Target = 250U;
         Protocol_Run();
         if (SysTick_GetTicks() >= Target)
         {

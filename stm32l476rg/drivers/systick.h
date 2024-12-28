@@ -43,7 +43,13 @@ void SysTick_Init(const SysTick_ConfigType* Config);
  * @brief Get the number of ticks that has passed since last reset.
  * @return Number of ticks since reset.
  */
-U64 SysTick_GetTicks(void);
+U32 SysTick_GetTicks(void);
+
+/**
+ * @brief Get the number of wrap-arounds for the tick counter.
+ * @return Number of wrap-arounds since reset.
+ */
+U32 SysTick_GetNofWrapArounds(void);
 
 /* -------------------------- Inline function definitions -------------------------- */
 

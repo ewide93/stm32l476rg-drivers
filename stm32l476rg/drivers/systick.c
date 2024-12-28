@@ -8,7 +8,9 @@
 #include "systick.h"
 
 /* --------------------------- Module private variables ---------------------------- */
-static volatile U64 TickCnt = 0;
+static volatile U32 TickCnt = 0;
+static volatile U32 PreviousTickCnt = 0;
+static volatile U32 WrapAroundCnt = 0;
 
 /* -------------------------- Public function definitions -------------------------- */
 
@@ -21,10 +23,16 @@ void SysTick_Init(const SysTick_ConfigType* Config)
                        ( Config->ClockSource == SYSTICK_CLK_SRC_AHB ? (1 << SysTick_CTRL_CLKSOURCE_Pos) : (0U) ) );
 }
 
-U64 SysTick_GetTicks(void)
+U32 SysTick_GetTicks(void)
 {
     return TickCnt;
 }
+
+U32 SysTick_GetNofWrapArounds(void)
+{
+    return WrapAroundCnt;
+}
+
 
 /* -------------------- Redefinition of weak interrupt handlers -------------------- */
 
@@ -34,6 +42,8 @@ U64 SysTick_GetTicks(void)
  */
 void SysTickHandler(void)
 {
+    PreviousTickCnt = TickCnt;
     TickCnt++;
+    if (TickCnt < PreviousTickCnt) { WrapAroundCnt++; }
 }
 
