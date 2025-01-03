@@ -16,6 +16,21 @@
 #include "uart.h"
 #include "crc.h"
 #include "protocol.h"
+#include "exti.h"
+
+Digital_OutputType OutputA5 =
+{
+    .PortPin = PIN_A5,
+    .OutputType = PIN_OUT_TYPE_PUSH_PULL,
+    .Speed = PIN_SPEED_LOW,
+    .InitVal = HIGH
+};
+
+Digital_InputType InputC13 =
+{
+    .PortPin = PIN_C13,
+    .Resistor = PIN_RES_NONE,
+};
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -24,6 +39,8 @@
  * @todo Move into separate board support package module
  */
 void Setup(void);
+
+void TestFunc(void);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
@@ -35,24 +52,13 @@ int main(void)
     Crc_Crc8Init(&Crc8Cfg);
     Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
 
-    Digital_OutputType OutputA5 =
-    {
-        .PortPin = PIN_A5,
-        .OutputType = PIN_OUT_TYPE_PUSH_PULL,
-        .Speed = PIN_SPEED_LOW,
-        .InitVal = HIGH
-    };
     Digital_OutputInit(&OutputA5);
+    Digital_InputInit(&InputC13);
+    Exti_GpioInit(InputC13.PortPin, TestFunc, EXTI_TRIGGER_FALLING_EDGE);
 
     while (1)
     {
-        static U32 Target = 250U;
         Protocol_Run();
-        if (SysTick_GetTicks() >= Target)
-        {
-            Digital_Toggle(&OutputA5);
-            Target += 250U;
-        }
     }
 
     return 0;
@@ -79,6 +85,8 @@ void Setup(void)
     ClkCtrl_SetApbPrescaler(APB2, APB_PS_1);
 
     ClkCtrl_PeripheralClockEnable(PCLK_GPIOA);
+    ClkCtrl_PeripheralClockEnable(PCLK_GPIOC);
+    ClkCtrl_PeripheralClockEnable(PCLK_SYSCFG);
 
     /* Basic setup for USART2 */
     ClkCtrl_PeripheralClockEnable(PCLK_USART2);
@@ -86,4 +94,9 @@ void Setup(void)
     /* Initialize SysTick with default configuration */
     const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
     SysTick_Init(&SysTickCfg);
+}
+
+void TestFunc(void)
+{
+    Digital_Toggle(&OutputA5);
 }

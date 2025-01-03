@@ -213,4 +213,24 @@ void Pin_ToggleOutputData(Pin_PortPinEnum PortPin);
  */
 Bool Pin_ReadInputData(Pin_PortPinEnum PortPin);
 
+/**
+ * @brief Get the GPIO port based on the given port & pin enumeration.
+ * @param PortPin Port & pin enumeration.
+ * @returns Pointer to GPIO port structure.
+ */
+GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin);
+
+
+/* ------------------------- External function definitions ------------------------- */
+
+/**
+ * @brief Get the pin number based on the given port & pin enumeration.
+ * @param PortPin Port & pin enumeration.
+ * @return Pin number
+ */
+static inline U8 Pin_GetPin(Pin_PortPinEnum PortPin)
+{
+    return (U8)(PortPin & 0x0FU);
+}
+
 #endif /* PIN_H */

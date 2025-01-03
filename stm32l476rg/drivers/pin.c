@@ -7,14 +7,9 @@
 /* ------------------------------- Include directives ------------------------------ */
 #include "pin.h"
 
-/* -------------------------- Private function definitions ------------------------- */
+/* -------------------------- Public function definitions -------------------------- */
 
-/**
- * @brief Get the GPIO port based on the given port & pin enumeration.
- * @param PortPin Port & pin enumeration.
- * @returns Pointer to GPIO port structure.
- */
-static GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin)
+GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin)
 {
 
     switch ((PortPin & 0xF0U) >> 4U)
@@ -27,18 +22,6 @@ static GPIO_TypeDef* Pin_GetPort(Pin_PortPinEnum PortPin)
     }
     return NULL;
 }
-
-/**
- * @brief Get the pin number based on the given port & pin enumeration.
- * @param PortPin Port & pin enumeration.
- * @return Pin number
- */
-static inline U8 Pin_GetPin(Pin_PortPinEnum PortPin)
-{
-    return (U8)(PortPin & 0x0FU);
-}
-
-/* -------------------------- Public function definitions -------------------------- */
 
 void Pin_SetMode(Pin_PortPinEnum PortPin, Pin_ModeEnum Mode)
 {

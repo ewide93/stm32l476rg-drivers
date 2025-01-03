@@ -7,6 +7,7 @@ SRC += $(DRIVERS_PATH)/flash.c
 SRC += $(DRIVERS_PATH)/digital.c
 SRC += $(DRIVERS_PATH)/uart.c
 SRC += $(DRIVERS_PATH)/crc.c
+SRC += $(DRIVERS_PATH)/exti.c
 
 # Include paths
 INC += $(DRIVERS_PATH)

@@ -22,6 +22,8 @@ typedef char Char;
 
 typedef float F32;
 typedef bool Bool;
+typedef void (*CallbackFunction)(void);
+
 #define True     (true)
 #define False    (false)
 
