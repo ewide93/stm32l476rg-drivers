@@ -86,7 +86,6 @@ void Setup(void)
 
     ClkCtrl_PeripheralClockEnable(PCLK_GPIOA);
     ClkCtrl_PeripheralClockEnable(PCLK_GPIOC);
-    ClkCtrl_PeripheralClockEnable(PCLK_SYSCFG);
 
     /* Basic setup for USART2 */
     ClkCtrl_PeripheralClockEnable(PCLK_USART2);

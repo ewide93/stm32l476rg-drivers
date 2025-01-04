@@ -554,4 +554,10 @@ void ClkCtrl_PeripheralClockEnable(ClkCtrl_PeripheralClockEnum Peripheral);
  */
 void ClkCtrl_PeripheralClockDisable(ClkCtrl_PeripheralClockEnum Peripheral);
 
+/**
+ * @brief Read the clock enable bit for the given peripheral.
+ * @param Peripheral Peripheral of interest.
+ */
+Bool ClkCtrl_ReadPeripheralClockEnableBit(ClkCtrl_PeripheralClockEnum Peripheral);
+
 #endif /* CLOCK_CONTROL_H */

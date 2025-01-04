@@ -602,3 +602,10 @@ void ClkCtrl_PeripheralClockDisable(ClkCtrl_PeripheralClockEnum Peripheral)
     const U8 Bit = (U8)(Peripheral & 0xFFU);
     *Register &= ~(1 << Bit);
 }
+
+Bool ClkCtrl_ReadPeripheralClockEnableBit(ClkCtrl_PeripheralClockEnum Peripheral)
+{
+    volatile const U32* const Register = (volatile U32*)(RCC_BASE + ((Peripheral & 0xFF00) >> 8U));
+    const U8 Bit = (U8)(Peripheral & 0xFFU);
+    return *Register & (1 << Bit);
+}

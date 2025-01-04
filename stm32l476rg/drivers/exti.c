@@ -7,6 +7,7 @@
 
 /* ------------------------------- Include directives ------------------------------ */
 #include "exti.h"
+#include "clock_control.h"
 
 /* -------------------------- Private function declarations ------------------------ */
 void DummyCallback(void);
@@ -63,7 +64,7 @@ static inline void EnableExti(Exti_GpioExtiEnum Exti)
 }
 
 /**
- * @brief Maskask the interrupt enable bit for the given EXTI.
+ * @brief Mask the interrupt enable bit for the given EXTI.
  */
 static inline void DisableExti(Exti_GpioExtiEnum Exti)
 {
@@ -135,6 +136,7 @@ void Exti_GpioInit(Pin_PortPinEnum PortPin, CallbackFunction Callback, Exti_Edge
 
     if (CrShift >= 0 && Irq != UsageFault_IRQn)
     {
+        if (!ClkCtrl_ReadPeripheralClockEnableBit(PCLK_SYSCFG)) { ClkCtrl_PeripheralClockEnable(PCLK_SYSCFG); }
         ExtiGpioCallbacks[Exti] = Callback;
         SYSCFG->EXTICR[CrIndex] |= ((((PortPin & 0xF0U) >> 4U) - 0xAU) << CrShift);
         SetEdgeTrigger(EdgeTrigger, Exti);
@@ -203,39 +205,14 @@ void EXTI9_5_IRQHandler(void)
 {
     const U32 PendingRegister = EXTI->PR1;
 
-    if (PendingRegister & EXTI_PR1_PIF5)
+    for (U8 i = (U8)EXTI5; i <= (U8)EXTI9; i++)
     {
-        ExtiGpioCallbacks[EXTI5]();
-        EXTI->PR1 |= EXTI_PR1_PIF5;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF6)
-    {
-        ExtiGpioCallbacks[EXTI6]();
-        EXTI->PR1 |= EXTI_PR1_PIF6;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF7)
-    {
-        ExtiGpioCallbacks[EXTI7]();
-        EXTI->PR1 |= EXTI_PR1_PIF7;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF8)
-    {
-        ExtiGpioCallbacks[EXTI8]();
-        EXTI->PR1 |= EXTI_PR1_PIF9;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF9)
-    {
-        ExtiGpioCallbacks[EXTI9]();
-        EXTI->PR1 |= EXTI_PR1_PIF9;
-        __DSB();
+        if (PendingRegister & (1 << i))
+        {
+            ExtiGpioCallbacks[i]();
+            EXTI->PR1 |= (1 << i);
+            __DSB();
+        }
     }
 }
 
@@ -246,45 +223,13 @@ void EXTI15_10_IRQHandler(void)
 {
     const U32 PendingRegister = EXTI->PR1;
 
-    if (PendingRegister & EXTI_PR1_PIF10)
+    for (U8 i = (U8)EXTI10; i <= (U8)EXTI15; i++)
     {
-        ExtiGpioCallbacks[EXTI10]();
-        EXTI->PR1 |= EXTI_PR1_PIF10;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF11)
-    {
-        ExtiGpioCallbacks[EXTI11]();
-        EXTI->PR1 |= EXTI_PR1_PIF11;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF12)
-    {
-        ExtiGpioCallbacks[EXTI12]();
-        EXTI->PR1 |= EXTI_PR1_PIF12;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF13)
-    {
-        ExtiGpioCallbacks[EXTI13]();
-        EXTI->PR1 |= EXTI_PR1_PIF13;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF14)
-    {
-        ExtiGpioCallbacks[EXTI14]();
-        EXTI->PR1 |= EXTI_PR1_PIF14;
-        __DSB();
-    }
-
-    if (PendingRegister & EXTI_PR1_PIF15)
-    {
-        ExtiGpioCallbacks[EXTI15]();
-        EXTI->PR1 |= EXTI_PR1_PIF15;
-        __DSB();
+        if (PendingRegister & (1 << i))
+        {
+            ExtiGpioCallbacks[i]();
+            EXTI->PR1 |= (1 << i);
+            __DSB();
+        }
     }
 }
