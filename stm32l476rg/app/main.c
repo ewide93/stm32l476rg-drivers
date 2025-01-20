@@ -17,6 +17,7 @@
 #include "crc.h"
 #include "protocol.h"
 #include "exti.h"
+#include "osal.h"
 
 Digital_OutputType OutputA5 =
 {
@@ -40,25 +41,32 @@ Digital_InputType InputC13 =
  */
 void Setup(void);
 
-void TestFunc(void);
+void TestFunc(void* Arg);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
 int main(void)
 {
     Setup();
-    Crc_Enable();
-    Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
-    Crc_Crc8Init(&Crc8Cfg);
-    Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
+    // Crc_Enable();
+    // Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
+    // Crc_Crc8Init(&Crc8Cfg);
+    // Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
 
     Digital_OutputInit(&OutputA5);
     Digital_InputInit(&InputC13);
-    Exti_GpioInit(InputC13.PortPin, TestFunc, EXTI_TRIGGER_FALLING_EDGE);
+    // Exti_GpioInit(InputC13.PortPin, TestFunc, EXTI_TRIGGER_FALLING_EDGE);
+
+    static StackType_t StackBuffer[256] = { 0 };
+    static StaticTask_t StaticTask = { 0 };
+    static U16 Delay_ms = 500U;
+    xTaskCreateStatic(TestFunc, "Test", 256, (void*)&Delay_ms, tskIDLE_PRIORITY, StackBuffer, &StaticTask);
+
+    vTaskStartScheduler();
 
     while (1)
     {
-        Protocol_Run();
+        // Protocol_Run();
     }
 
     return 0;
@@ -68,11 +76,21 @@ int main(void)
 
 void Setup(void)
 {
+    /**
+     * Enable data & instruction caches and set an appropriate number
+     * of wait states based on a system clock frequency of 80 MHz.
+     */
     Flash_PrefetchEnable();
     Flash_InstructionCacheEnable();
     Flash_DataCacheEnable();
     Flash_SetFlashLatency(FLASH_WS_4);
 
+    /**
+     * Configure the clock tree to yield the following result:
+     * - System clock frequency (SYSCLK & HCLK): 80 MHz
+     * - Peripheral bus 1 (PCLK1): 80 MHz
+     * - Peripheral bus 2 (PCLK2): 80 MHz
+     */
     ClkCtrl_HsiEnable(True);
     ClkCtrl_SetPllInput(PLL_INPUT_HSI, PLL_M_4);
     ClkCtrl_SetPllN(PLL_MAIN, 40);
@@ -84,18 +102,31 @@ void Setup(void)
     ClkCtrl_SetApbPrescaler(APB1, APB_PS_1);
     ClkCtrl_SetApbPrescaler(APB2, APB_PS_1);
 
+    /**
+     * Enable clocks for used peripherals
+     */
     ClkCtrl_PeripheralClockEnable(PCLK_GPIOA);
     ClkCtrl_PeripheralClockEnable(PCLK_GPIOC);
-
-    /* Basic setup for USART2 */
     ClkCtrl_PeripheralClockEnable(PCLK_USART2);
 
-    /* Initialize SysTick with default configuration */
-    const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
-    SysTick_Init(&SysTickCfg);
+    /**
+     * Initialize SysTick with default configuration in
+     * cases where we're running without FreeRTOS.
+     */
+    #if defined(OSAL_CONFIG_USE_BARE_METAL) && (OSAL_CONFIG_USE_BARE_METAL == 1)
+        const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
+        SysTick_Init(&SysTickCfg);
+    #elif defined(OSAL_CONFIG_USE_FREERTOS) && (OSAL_CONFIG_USE_FREERTOS == 1)
+        NVIC_SetPriorityGrouping(0U);
+    #endif
 }
 
-void TestFunc(void)
+void TestFunc(void* Arg)
 {
-    Digital_Toggle(&OutputA5);
+    const TickType_t Delay_ms = pdMS_TO_TICKS(*(U16*)Arg);
+    while (True)
+    {
+        Digital_Toggle(&OutputA5);
+        vTaskDelay(Delay_ms);
+    }
 }

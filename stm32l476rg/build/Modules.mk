@@ -10,3 +10,6 @@ include $(COMMON_PATH)/Common.mk
 
 EXTERNAL_PATH := $(ROOT)/external
 include $(EXTERNAL_PATH)/External.mk
+
+OSAL_PATH := $(ROOT)/osal
+include $(OSAL_PATH)/Osal.mk

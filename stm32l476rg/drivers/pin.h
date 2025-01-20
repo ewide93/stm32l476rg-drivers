@@ -107,7 +107,7 @@ typedef enum
  */
 typedef enum
 {
-    PIN_RES_NONE = 0x0U,          /* No pull-up/down resustor */
+    PIN_RES_NONE = 0x0U,          /* No pull-up/down resistor */
     PIN_RES_PULL_UP = 0x1U,       /* Pull-up resistor */
     PIN_RES_PULL_DOWN = 0x2U,     /* Pull-down resistor */
 } Pin_ResistorEnum;

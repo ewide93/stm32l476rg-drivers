@@ -8,6 +8,7 @@
 
 /* ------------------------------- Include directives ------------------------------ */
 #include "startup.h"
+#include "osal.h"
 
 /* Symbols defined in linker script */
 extern U32 _data_loadaddr;
@@ -27,11 +28,20 @@ VectorTableType VectorTable __attribute__((section(".isr_vector"))) =
     .BusFaultHandler = BusFaultHandler,
     .UsageFaultHandler = UsageFaultHandler,
     .ReservedSection0 = { 0, 0, 0, 0 },
-    .SVCallHandler = SVCallHandler,
+    /* OSAL configuration */
+    #if defined(OSAL_CONFIG_USE_FREERTOS) && (OSAL_CONFIG_USE_FREERTOS == 1)
+        .SVCallHandler = vPortSVCHandler,
+        .PendSVHandler = xPortPendSVHandler,
+        .SysTickHandler = xPortSysTickHandler,
+    #elif defined(OSAL_CONFIG_USE_BARE_METAL) && (OSAL_CONFIG_USE_BARE_METAL == 1)
+        .SVCallHandler = SVCallHandler,
+        .PendSVHandler = PendSVHandler,
+        .SysTickHandler = SysTickHandler,
+    #else
+        #error "Missing configuration for OSAL_CONFIG_USE_FREERTOS, OSAL_CONFIG_USE_BARE_METAL"
+    #endif /* OSAL configuration */
     .DebugMonHandler = DebugMonHandler,
     .ReservedSection1 = 0,
-    .PendSVHandler = PendSVHandler,
-    .SysTickHandler = SysTickHandler,
     .ISR[WWDG_IRQn] = WWDG_IRQHandler,
     .ISR[PVD_PVM_IRQn] = PVD_PVM_IRQHandler,
     .ISR[TAMP_STAMP_IRQn] = TAMP_STAMP_IRQHandler,
