@@ -1,101 +1,23 @@
-/*
- * FreeRTOS Kernel V11.1.0
- * Copyright (C) 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+/**
+ * @file FreeRTOSConfig.h
  *
- * SPDX-License-Identifier: MIT
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- * https://www.FreeRTOS.org
- * https://github.com/FreeRTOS
- *
+ * @brief Configuration of FreeRTOS
  */
-
-/*******************************************************************************
- * This file provides an example FreeRTOSConfig.h header file, inclusive of an
- * abbreviated explanation of each configuration item.  Online and reference
- * documentation provides more information.
- * https://www.freertos.org/a00110.html
- *
- * Constant values enclosed in square brackets ('[' and ']') must be completed
- * before this file will build.
- *
- * Use the FreeRTOSConfig.h supplied with the RTOS port in use rather than this
- * generic file, if one is available.
- ******************************************************************************/
 
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-/******************************************************************************/
-/* Hardware description related definitions. **********************************/
-/******************************************************************************/
+/* -------------------- Hardware description related definitions ------------------- */
 
-/* In most cases, configCPU_CLOCK_HZ must be set to the frequency of the clock
- * that drives the peripheral used to generate the kernels periodic tick interrupt.
- * The default value is set to 20MHz and matches the QEMU demo settings.  Your
- * application will certainly need a different value so set this correctly.
- * This is very often, but not always, equal to the main system clock frequency. */
-#define configCPU_CLOCK_HZ    (80000000UL)
+#define configCPU_CLOCK_HZ  (80000000UL)    /* CPU frequency [Hz]. */
 
-/* configSYSTICK_CLOCK_HZ is an optional parameter for ARM Cortex-M ports only.
- *
- * By default ARM Cortex-M ports generate the RTOS tick interrupt from the
- * Cortex-M SysTick timer. Most Cortex-M MCUs run the SysTick timer at the same
- * frequency as the MCU itself - when that is the case configSYSTICK_CLOCK_HZ is
- * not needed and should be left undefined. If the SysTick timer is clocked at a
- * different frequency to the MCU core then set configCPU_CLOCK_HZ to the MCU clock
- * frequency, as normal, and configSYSTICK_CLOCK_HZ to the SysTick clock
- * frequency.  Not used if left undefined.
- * The default value is undefined (commented out).  If you need this value bring it
- * back and set it to a suitable value. */
 
-/*
- #define configSYSTICK_CLOCK_HZ                  [Platform specific]
- */
+/* ------------------- Scheduling behaviour related definitions -------------------- */
 
-/******************************************************************************/
-/* Scheduling behaviour related definitions. **********************************/
-/******************************************************************************/
-
-/* configTICK_RATE_HZ sets frequency of the tick interrupt in Hz, normally
- * calculated from the configCPU_CLOCK_HZ value. */
-#define configTICK_RATE_HZ                         1000
-
-/* Set configUSE_PREEMPTION to 1 to use pre-emptive scheduling.  Set
- * configUSE_PREEMPTION to 0 to use co-operative scheduling.
- * See https://www.freertos.org/single-core-amp-smp-rtos-scheduling.html. */
-#define configUSE_PREEMPTION                       1
-
-/* Set configUSE_TIME_SLICING to 1 to have the scheduler switch between Ready
- * state tasks of equal priority on every tick interrupt.  Set
- * configUSE_TIME_SLICING to 0 to prevent the scheduler switching between Ready
- * state tasks just because there was a tick interrupt.  See
- * https://freertos.org/single-core-amp-smp-rtos-scheduling.html. */
-#define configUSE_TIME_SLICING                     1
-
-/* Set configUSE_PORT_OPTIMISED_TASK_SELECTION to 1 to select the next task to
- * run using an algorithm optimised to the instruction set of the target hardware -
- * normally using a count leading zeros assembly instruction.  Set to 0 to select
- * the next task to run using a generic C algorithm that works for all FreeRTOS
- * ports.  Not all FreeRTOS ports have this option.  Defaults to 0 if left
- * undefined. */
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION    1
+#define configTICK_RATE_HZ                         (1000U) /* Frequency of the tick interrupt [Hz]. */
+#define configUSE_PREEMPTION                       (1U)    /* 1 = Pre-emptive scheduling, 0 = co-operative scheduling. */
+#define configUSE_TIME_SLICING                     (1U)    /* 1 = Enable time-slicing, 0 = disable time-slicing. */
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION    (1U)    /* 1 = Architecture optimized task selection algorithm, 0 = generic algorithm. */
 
 /* Set configUSE_TICKLESS_IDLE to 1 to use the low power tickless mode.  Set to
  * 0 to keep the tick interrupt running at all times.  Not all FreeRTOS ports
