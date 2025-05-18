@@ -9,3 +9,5 @@ missingInclude:../external/CMSIS/core_cm4.h
 missingInclude:../external/CMSIS/cmsis_compiler.h
 comparePointers:../external/CMSIS/cmsis_gcc.h
 comparePointers:../drivers/startup.c
+missingInclude:../external/FreeRTOS/include/deprecated_definitions.h
+useStandardLibrary:../common/memory_routines.c

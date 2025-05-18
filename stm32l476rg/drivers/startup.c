@@ -10,15 +10,19 @@
 #include "startup.h"
 #include "osal.h"
 
-/* Symbols defined in linker script */
+/* ------------------------ Symbols defined in linker script ----------------------- */
 extern U32 _data_loadaddr;
 extern U32 _data;
 extern U32 _edata;
 extern U32 _ebss;
 extern U32 _stack;
 
+extern U32 _ram2;
+extern U32 _eram2;
+extern U32 _ram2_loadaddr;
+
 /* Vector table definition */
-VectorTableType VectorTable __attribute__((section(".isr_vector"))) =
+VectorTableType VectorTable SECTION(IVT_SECTION) =
 {
     .StackTop = &_stack,
     .ResetHandler = ResetHandler,
@@ -145,11 +149,19 @@ void ResetHandler(void)
         *DestPtr++ = 0;
     }
 
+    /* Initialize RAM2 section */
+    SrcPtr = &_ram2_loadaddr;
+    DestPtr = &_ram2;
+    for (; DestPtr < &_eram2; SrcPtr++, DestPtr++)
+    {
+        *DestPtr = *SrcPtr;
+    }
+
     /* Ensure 8-byte stack alignment on exception entry */
     SCB->CCR |= SCB_CCR_STKALIGN_Msk;
 
     /* Enable floating point co-processor */
-    SCB->CPACR |= (0xFU << 20U);
+    SCB->CPACR |= (0x0FUL << 20U);
 
     (void)main();
 }

@@ -1,3 +1,10 @@
+/**
+ * @file typedef.h
+ *
+ * @brief Common type definitions & preprocessor marcros.
+ *
+ */
+
 #ifndef TYPEDEF_H
 #define TYPEDEF_H
 
@@ -7,6 +14,7 @@
 
 typedef uint64_t U64;
 typedef uint32_t U32;
+#define U32_MAX UINT32_MAX
 typedef uint16_t U16;
 typedef uint8_t U8;
 
@@ -25,10 +33,15 @@ typedef void (*CallbackFunction)(void);
 #define False    (false)
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
-#define StaticAssert(Condition, Message) _Static_assert(Condition, Message)
+    #define StaticAssert(Condition, Message) _Static_assert(Condition, Message)
 #else
-#error "Use of static assertions requires C11 or greater."
+    #error "Use of static assertions requires C11 or greater."
 #endif
+
+#if defined(__GNUC__)
+    #define ALIGN(Alignment)          __attribute__((aligned((Alignment))))
+    #define SECTION(LinkerSection)    __attribute__((section(LinkerSection)))
+#endif /* GCC attribute wrapper macros. */
 
 /**
  * @brief Generic return code enumeration.

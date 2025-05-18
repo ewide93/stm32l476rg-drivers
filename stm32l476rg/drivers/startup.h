@@ -8,9 +8,12 @@
 #define STARTUP_H
 
 /* ------------------------------- Include directives ------------------------------ */
-
 #include "typedef.h"
 #include "stm32l476xx.h"
+
+/* ---------------------------- Preprocessor directives ---------------------------- */
+#define IVT_SECTION ".isr_vector"
+
 
 /* ------------------ Structures, enumerations & type definitions ------------------ */
 

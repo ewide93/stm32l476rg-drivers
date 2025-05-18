@@ -82,9 +82,13 @@ SECTIONS
 
     .ram2 :
     {
+        _ram2 = .;
         *(.ram2*)
         . = ALIGN(4);
-    } >ram2
+        _eram2 = .;
+    } >ram2 AT >rom
+
+    _ram2_loadaddr = LOADADDR(.ram2);
 
     /DISCARD/ : { *(.eh_frame) }
     . = ALIGN(4);

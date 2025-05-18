@@ -9,7 +9,8 @@
 
 /* -------------------- Hardware description related definitions ------------------- */
 
-#define configCPU_CLOCK_HZ  (80000000UL)    /* CPU frequency [Hz]. */
+#define configCPU_CLOCK_HZ      (80000000UL)    /* CPU frequency [Hz]. */
+#define configNUMBER_OF_CORES   (1)             /* Number of CPU cores. */
 
 
 /* ------------------- Scheduling behaviour related definitions -------------------- */
@@ -54,7 +55,7 @@
  *
  * Defining configTICK_TYPE_WIDTH_IN_BITS as TICK_TYPE_WIDTH_64_BITS causes
  * TickType_t to be defined (typedef'ed) as an unsigned 64-bit type. */
-#define configTICK_TYPE_WIDTH_IN_BITS              TICK_TYPE_WIDTH_64_BITS
+#define configTICK_TYPE_WIDTH_IN_BITS              TICK_TYPE_WIDTH_32_BITS
 
 /* Set configIDLE_SHOULD_YIELD to 1 to have the Idle task yield to an
  * application task if there is an Idle priority (priority 0) application task that

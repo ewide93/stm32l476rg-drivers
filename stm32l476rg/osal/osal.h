@@ -21,12 +21,22 @@
 
 #if (OSAL_CONFIG_USE_FREERTOS == 1) && (OSAL_CONFIG_USE_BARE_METAL == 1)
     #error "Conflicing configurations for OSAL_CONFIG_USE_FREERTOS and OSAL_CONFIG_USE_BARE_METAL"
-#endif /* OSAL_CONFIG */
+#endif /* OSAL conflicting configurations. */
+
+#if (OSAL_CONFIG_USE_FREERTOS == 0) && (OSAL_CONFIG_USE_BARE_METAL == 0)
+    #error "Either OSAL_CONFIG_USE_FREERTOS or OSAL_CONFIG_USE_BARE_METAL must be set."
+#endif /* OSAL not configured. */
 
 /* --------------------------- General include directives -------------------------- */
 
 #include "typedef.h"
-#include "port.h"
+
+/* --------------------------- RTOS-agnostic OSAL settings ------------------------- */
+
+/**
+ * @brief Set the number of bytes to reserve for RTOS threads.
+ */
+#define OSAL_STATIC_MEMORY_SIZE_BYTES (4096U)
 
 /* ---------------------- FreeRTOS specific OSAL functionality --------------------- */
 
@@ -44,8 +54,51 @@
 
 /* ---------------------- FreeRTOS specific include directives --------------------- */
 
+#include "port.h"
 #include "FreeRTOS.h"
 #include "task.h"
+
+typedef TickType_t Osal_TickType;
+#define OSAL_WORD_SIZE  (sizeof(StackType_t))
+
+/* ----------------------- FreeRTOS specific inline functions ---------------------- */
+
+/**
+ * @brief Convert the given time in milliseconds to the corresponding
+ *        number of OS ticks.
+ * @param Milliseconds Time in milliseconds.
+ * @return Time in OS ticks.
+ */
+static inline Osal_TickType Osal_msToTicks(U32 Milliseconds)
+{
+    #if defined(configTICK_RATE_HZ) && (configTICK_RATE_HZ == 1000U)
+        return (Osal_TickType)Milliseconds;
+    #else
+        return (Osal_TickType)pdMS_TO_TICKS(Milliseconds);
+    #endif
+}
+
+/**
+ * @brief Convert the given number of OS ticks into the corresponding time
+ *        in milliseconds.
+ * @param Ticks Number of ticks.
+ * @return Time in milliseconds.
+ */
+static inline U32 Osal_msFromTicks(Osal_TickType Ticks)
+{
+    #if defined(configTICK_RATE_HZ) && (configTICK_RATE_HZ == 1000U)
+        return Ticks;
+    #else
+        return (U32)pdTICKS_TO_MS(Ticks);
+    #endif
+}
+
+/* --------------------- FreeRTOS specific function prototypes --------------------- */
+
+/**
+ * @brief
+ */
+void Osal_Delay_ms(U32 Delay);
 
 
 #endif /* FreeRTOS specific */

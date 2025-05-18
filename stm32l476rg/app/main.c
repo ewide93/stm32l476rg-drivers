@@ -17,6 +17,7 @@
 #include "crc.h"
 #include "protocol.h"
 #include "exti.h"
+#include "mempool.h"
 #include "osal.h"
 
 Digital_OutputType OutputA5 =
@@ -48,6 +49,8 @@ void TestFunc(void* Arg);
 int main(void)
 {
     Setup();
+    MemPool_Init();
+    U32* TestVar = (U32*)MemPool_Allocate(sizeof(U32) * 9);
     // Crc_Enable();
     // Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
     // Crc_Crc8Init(&Crc8Cfg);
@@ -59,8 +62,9 @@ int main(void)
 
     static StackType_t StackBuffer[256] = { 0 };
     static StaticTask_t StaticTask = { 0 };
-    static U16 Delay_ms = 500U;
-    xTaskCreateStatic(TestFunc, "Test", 256, (void*)&Delay_ms, tskIDLE_PRIORITY, StackBuffer, &StaticTask);
+    // static U32 Delay_ms = 125U;
+    if (MemPool_GetNofAvailableChunks() == MEMPOOL_NOF_CHUNKS - 2) { TestVar[0] = 500UL; }
+    xTaskCreateStatic(TestFunc, "Test", 256, (void*)&TestVar[0], tskIDLE_PRIORITY, StackBuffer, &StaticTask);
 
     vTaskStartScheduler();
 
@@ -123,10 +127,10 @@ void Setup(void)
 
 void TestFunc(void* Arg)
 {
-    const TickType_t Delay_ms = pdMS_TO_TICKS(*(U16*)Arg);
+    const U32 BlinkPeriod_ms = *((U32*)Arg);
     while (True)
     {
         Digital_Toggle(&OutputA5);
-        vTaskDelay(Delay_ms);
+        Osal_Delay_ms(BlinkPeriod_ms);
     }
 }

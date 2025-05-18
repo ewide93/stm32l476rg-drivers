@@ -1,3 +1,12 @@
+/**
+ * @file mempool.c
+ *
+ * @brief Static memory pool handler module.
+ *
+ */
+
+/* ------------------------------- Include directives ------------------------------ */
+
 #include "mempool.h"
 
 
@@ -13,6 +22,9 @@ typedef enum
     CHUNK_STATUS_ALLOC_LAST = 4             /* The chunk is allocated and is the last chunk of a multi-chunk allocation. */
 } MemPool_ChunkStatusEnum;
 
+/**
+ * @brief Memory pool chunk metadata structure.
+ */
 typedef struct
 {
     U8* Data;
@@ -20,13 +32,30 @@ typedef struct
     MemPool_ChunkStatusEnum Status;
 } MemPool_ChunkType;
 
-static U8 MemoryPool[POOL_SIZE] = { 0 };
-static MemPool_ChunkType Chunks[NOF_CHUNKS] = { 0 };
-static U8 ChunksAvailable = NOF_CHUNKS;
-static U8* FirstChunk;
-static U8* LastChunk;
-static Bool ModuleInitialized = False;
+/**
+ * @brief Memory pool module internal data structure.
+ */
+typedef struct
+{
+    MemPool_ChunkType Chunks[MEMPOOL_NOF_CHUNKS];
+    U8* MemoryPool;
+    U32 ChunksAvailable;
+    U8* FirstChunk;
+    U8* LastChunk;
+    Bool Initialized;
+} MemPool_InternalType;
 
+/* -------------------------------- Local variables -------------------------------- */
+
+#if (MEMPOOL_USE_RAM2_SECTION == 1)
+    static U8 MemoryPoolBuffer[MEMPOOL_SIZE] ALIGN(MEMPOOL_CHUNK_SIZE) SECTION(".ram2") = { 0 };
+#else
+    static U8 MemoryPoolBuffer[MEMPOOL_SIZE] ALIGN(MEMPOOL_CHUNK_SIZE) = { 0 };
+#endif
+
+static MemPool_InternalType Internal = { 0 };
+
+/* --------------------------- Local function definitions -------------------------- */
 
 /**
  * @brief Check if the given address is within the buffer
@@ -37,7 +66,7 @@ static Bool ModuleInitialized = False;
  */
 static Bool MemPool_AddressIsValid(void* Address)
 {
-    return ((U8*)Address >= FirstChunk) && ((U8*)Address <= LastChunk);
+    return ((U8*)Address >= Internal.FirstChunk) && ((U8*)Address <= Internal.LastChunk);
 }
 
 
@@ -46,44 +75,28 @@ static Bool MemPool_AddressIsValid(void* Address)
  * @param Size Number of desired bytes to allocate.
  * @return Number of chunks required for the allocation.
  */
-static U8 MemPool_CalcNofChunksRequired(U16 Size)
+static U32 MemPool_CalcNofChunksRequired(U32 Size)
 {
-    U8 Rv = 0;
-
-    if (Size > 0)
-    {
-        U8 CmpSize = CHUNK_SIZE;
-        for (U8 i = 1; i <= NOF_CHUNKS; i++)
-        {
-            if (Size <= CmpSize)
-            {
-                Rv = i;
-                break;
-            }
-            else
-            {
-                CmpSize += CHUNK_SIZE;
-            }
-        }
-    }
-    return Rv;
+    U32 NofChunks = Size / MEMPOOL_CHUNK_SIZE;
+    if (Size % MEMPOOL_CHUNK_SIZE != 0) { NofChunks++; }
+    return NofChunks;
 }
 
 /**
  * @brief Determine if the requested allocation is possible.
- * @param Size Number of chunks needed for the requested for allocation.
+ * @param ChunksRequired Number of chunks needed for the requested for allocation.
  * @return Index of the first chunk for allocation. Index of -1
  *         indicates that the allocation is not possible.
  */
-static S8 MemPool_GetAllocationIndex(U8 ChunksRequired)
+static S32 MemPool_GetAllocationIndex(U32 ChunksRequired)
 {
-    S8 FirstChunkIndex = -1;
+    S32 FirstChunkIndex = -1;
     Bool FirstChunkFound = False;
-    U8 ConsecutiveChunksCnt = 0;
+    U32 ConsecutiveChunksCnt = 0;
 
-    for (U8 i = 0; i < NOF_CHUNKS; i++)
+    for (U32 i = 0; i < MEMPOOL_NOF_CHUNKS; i++)
     {
-        if (Chunks[i].Status == CHUNK_STATUS_FREE)
+        if (Internal.Chunks[i].Status == CHUNK_STATUS_FREE)
         {
             if (!FirstChunkFound)
             {
@@ -106,7 +119,6 @@ static S8 MemPool_GetAllocationIndex(U8 ChunksRequired)
     return FirstChunkIndex;
 }
 
-
 /**
  * @brief Allocate a single chunk of memory from the memory pool.
  * @return Pointer to the start of the allocated memory.
@@ -114,19 +126,18 @@ static S8 MemPool_GetAllocationIndex(U8 ChunksRequired)
 static void* MemPool_AllocateSingleChunk(void)
 {
     void* ChunkPtr = NULL;
-    for (U8 i = 0; i < NOF_CHUNKS; i++)
+    for (U32 i = 0; i < MEMPOOL_NOF_CHUNKS; i++)
     {
-        if (Chunks[i].Status == CHUNK_STATUS_FREE)
+        if (Internal.Chunks[i].Status == CHUNK_STATUS_FREE)
         {
-            ChunkPtr = (void*)&MemoryPool[i * CHUNK_SIZE];
-            Chunks[i].Status = CHUNK_STATUS_ALLOC_STANDALONE;
-            ChunksAvailable--;
+            ChunkPtr = (void*)&Internal.MemoryPool[i * MEMPOOL_CHUNK_SIZE];
+            Internal.Chunks[i].Status = CHUNK_STATUS_ALLOC_STANDALONE;
+            Internal.ChunksAvailable--;
             break;
         }
     }
     return ChunkPtr;
 }
-
 
 /**
  * @brief Zero-fill the memory of the chunk at the given index.
@@ -134,33 +145,34 @@ static void* MemPool_AllocateSingleChunk(void)
  */
 void MemPool_ClearChunk(U8 Index)
 {
-    for (U8 i = 0; i < CHUNK_SIZE; i++)
+    for (U8 i = 0; i < MEMPOOL_CHUNK_SIZE; i++)
     {
-        Chunks[Index].Data[i] = 0;
+        Internal.Chunks[Index].Data[i] = 0;
     }
 }
 
 void MemPool_Init(void)
 {
-    for (U8 i = 0; i < NOF_CHUNKS; i++)
+    Internal.MemoryPool = MemoryPoolBuffer;
+    Internal.ChunksAvailable = MEMPOOL_NOF_CHUNKS;
+    for (U32 i = 0; i < Internal.ChunksAvailable; i++)
     {
-        Chunks[i].Status = CHUNK_STATUS_FREE;
-        Chunks[i].Index = i;
-        Chunks[i].Data = &MemoryPool[i * CHUNK_SIZE];
+        Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
+        Internal.Chunks[i].Index = i;
+        Internal.Chunks[i].Data = &Internal.MemoryPool[i * MEMPOOL_CHUNK_SIZE];
     }
-    FirstChunk = Chunks[0].Data;
-    LastChunk = Chunks[(NOF_CHUNKS - 1)].Data;
-    ModuleInitialized = True;
+    Internal.FirstChunk = Internal.Chunks[0U].Data;
+    Internal.LastChunk = Internal.Chunks[(MEMPOOL_NOF_CHUNKS - 1U)].Data;
+    Internal.Initialized = True;
 }
 
-
-void* MemPool_Allocate(U16 Size)
+void* MemPool_Allocate(U32 Size)
 {
     void* ChunkPtr = NULL;
-    if (!ModuleInitialized) { return ChunkPtr; }
-    const U8 ChunksRequired = MemPool_CalcNofChunksRequired(Size);
+    if (!Internal.Initialized) { return ChunkPtr; }
+    const U32 ChunksRequired = MemPool_CalcNofChunksRequired(Size);
 
-    if (ChunksRequired <= ChunksAvailable && ChunksRequired > 0)
+    if (ChunksRequired <= Internal.ChunksAvailable && ChunksRequired > 0)
     {
         if (ChunksRequired == 1)
         {
@@ -168,29 +180,29 @@ void* MemPool_Allocate(U16 Size)
         }
         else
         {
-            S8 FirstChunkIndex = MemPool_GetAllocationIndex(ChunksRequired);
+            S32 FirstChunkIndex = MemPool_GetAllocationIndex(ChunksRequired);
             if (FirstChunkIndex >= 0)
             {
-                ChunkPtr = (void*)Chunks[FirstChunkIndex].Data;
-                const U8 AllocationBoundary = FirstChunkIndex + ChunksRequired;
-                U8 ChunksAllocatedCnt = 0;
+                ChunkPtr = (void*)Internal.Chunks[FirstChunkIndex].Data;
+                const U32 AllocationBoundary = FirstChunkIndex + ChunksRequired;
+                U32 ChunksAllocatedCnt = 0;
 
-                for (U8 i = FirstChunkIndex; i < AllocationBoundary; i++)
+                for (U32 i = FirstChunkIndex; i < AllocationBoundary; i++)
                 {
                     ChunksAllocatedCnt++;
                     if (ChunksAllocatedCnt == 1)
                     {
-                        Chunks[i].Status = CHUNK_STATUS_ALLOC_FIRST;
+                        Internal.Chunks[i].Status = CHUNK_STATUS_ALLOC_FIRST;
                     }
                     else if (ChunksAllocatedCnt > 1 && ChunksAllocatedCnt < ChunksRequired)
                     {
-                        Chunks[i].Status = CHUNK_STATUS_ALLOC_SECTION;
+                        Internal.Chunks[i].Status = CHUNK_STATUS_ALLOC_SECTION;
                     }
                     else
                     {
-                        Chunks[i].Status = CHUNK_STATUS_ALLOC_LAST;
+                        Internal.Chunks[i].Status = CHUNK_STATUS_ALLOC_LAST;
                     }
-                    ChunksAvailable--;
+                    Internal.ChunksAvailable--;
                 }
             }
         }
@@ -201,29 +213,29 @@ void* MemPool_Allocate(U16 Size)
 
 void MemPool_Free(void* Address)
 {
-    if (!ModuleInitialized) { return; }
+    if (!Internal.Initialized) { return; }
     if (!MemPool_AddressIsValid(Address)) { return; }
 
     const U8* ChunkPtr = (U8*)Address;
     Bool Done = False;
     Bool MultiChunk = False;
 
-    for (U8 i = 0; i < NOF_CHUNKS; i++)
+    for (U32 i = 0; i < MEMPOOL_NOF_CHUNKS; i++)
     {
-        if (Chunks[i].Data == ChunkPtr)
+        if (Internal.Chunks[i].Data == ChunkPtr)
         {
-            if (Chunks[i].Status == CHUNK_STATUS_ALLOC_STANDALONE)
+            if (Internal.Chunks[i].Status == CHUNK_STATUS_ALLOC_STANDALONE)
             {
-                MemPool_ClearChunk(Chunks[i].Index);
-                Chunks[i].Status = CHUNK_STATUS_FREE;
-                ChunksAvailable++;
+                MemPool_ClearChunk(Internal.Chunks[i].Index);
+                Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
+                Internal.ChunksAvailable++;
                 Done = True;
             }
-            else if (Chunks[i].Status == CHUNK_STATUS_ALLOC_FIRST)
+            else if (Internal.Chunks[i].Status == CHUNK_STATUS_ALLOC_FIRST)
             {
-                MemPool_ClearChunk(Chunks[i].Index);
-                Chunks[i].Status = CHUNK_STATUS_FREE;
-                ChunksAvailable++;
+                MemPool_ClearChunk(Internal.Chunks[i].Index);
+                Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
+                Internal.ChunksAvailable++;
                 MultiChunk = True;
             }
             else { /* Should not happen... */ }
@@ -231,10 +243,10 @@ void MemPool_Free(void* Address)
         }
         else if (MultiChunk)
         {
-            if (Chunks[i].Status == CHUNK_STATUS_ALLOC_LAST) { Done = True; }
-            MemPool_ClearChunk(Chunks[i].Index);
-            Chunks[i].Status = CHUNK_STATUS_FREE;
-            ChunksAvailable++;
+            if (Internal.Chunks[i].Status == CHUNK_STATUS_ALLOC_LAST) { Done = True; }
+            MemPool_ClearChunk(Internal.Chunks[i].Index);
+            Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
+            Internal.ChunksAvailable++;
         }
         else { /* Continue... */ }
 
@@ -244,18 +256,5 @@ void MemPool_Free(void* Address)
 
 U8 MemPool_GetNofAvailableChunks(void)
 {
-    return ChunksAvailable;
+    return Internal.ChunksAvailable;
 }
-
-#if defined(UNIT_TEST)
-void MemPool_Reset(void)
-{
-    for (U8 i = 0; i < NOF_CHUNKS; i++)
-    {
-        MemPool_ClearChunk(i);
-        Chunks[i].Status = CHUNK_STATUS_FREE;
-    }
-    ChunksAvailable = NOF_CHUNKS;
-}
-#endif /* UNIT_TEST */
-

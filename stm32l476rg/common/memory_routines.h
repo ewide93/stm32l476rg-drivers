@@ -3,6 +3,7 @@
  *
  * @brief Provide implementations of memcpy & memset for FreeRTOS to avoid
  *        dependency on libc header string.h.
+ *        Additionally provide helper functions for memory alignment.
  */
 
 #ifndef MEMORY_ROUTINES_H
@@ -31,5 +32,21 @@ void* memcpy(void* restrict Destination, const void* restrict Source, size_t Cou
  * @return Copy of Destination.
  */
 void* memset(void* Destination, int Data, size_t Count);
+
+/**
+ * @brief Check if a value is a power of two (valid memory aligment).
+ * @param Value The value to test.
+ * @return True = is a power of two, False = is not a power of two.
+ */
+Bool IsPowerOfTwo(U32 Value);
+
+
+/**
+ * @brief Check if the given address has the given alignment.
+ * @param Address Address to check.
+ * @param Alignment Alignment to check against.
+ * @return True = is aligned, False = is not aligned.
+ */
+Bool IsAligned(void* Address, U32 Alignment);
 
 #endif /* MEMORY_ROUTINES_H */

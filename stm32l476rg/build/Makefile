@@ -137,6 +137,9 @@ LINT_PREPROCESSOR_UNDEF += -USTM32L4S5xx
 LINT_PREPROCESSOR_UNDEF += -USTM32L4S7xx
 LINT_PREPROCESSOR_UNDEF += -USTM32L4S9xx
 
+# Ignore FreeRTOS files
+LINT_IGNORE := -i$(EXTERNAL_PATH)/FreeRTOS
+
 # -------------------------------------------------------------------------------------
 # Default rule
 # -------------------------------------------------------------------------------------
@@ -180,7 +183,7 @@ clean:
 # -------------------------------------------------------------------------------------
 .PHONY: lint
 lint:
-	@$(LINTER) $(LINTFLAGS) $(LINT_PREPROCESSOR_DEF) $(LINT_PREPROCESSOR_UNDEF) $(LINT_INC) $(LINT_SUPPRESS) $(dir $(SRC))
+	@$(LINTER) $(LINTFLAGS) $(LINT_PREPROCESSOR_DEF) $(LINT_PREPROCESSOR_UNDEF) $(LINT_IGNORE) $(LINT_INC) $(LINT_SUPPRESS) $(dir $(SRC))
 
 # -------------------------------------------------------------------------------------
 # Include dependency files
