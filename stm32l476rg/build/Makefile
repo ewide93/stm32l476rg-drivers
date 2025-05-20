@@ -45,6 +45,7 @@ CFLAGS := $(MCUFLAGS)
 CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -fstack-usage
+CFLAGS += -fno-builtin
 CFLAGS += -MMD -MP
 CFLAGS += -c
 CFLAGS += -std=c11
@@ -78,7 +79,6 @@ LDFLAGS += -T$(LINKER_SCRIPT)
 LDFLAGS += -nostartfiles
 LDFLAGS += -nostdlib
 LDFLAGS += -nolibc
-LDFLAGS += -lgcc
 LDFLAGS += -Wl,-Map=$(OUT_DIR)/$(TARGET).map
 LDFLAGS += -Wl,--cref
 LDFLAGS += -Wl,--gc-sections

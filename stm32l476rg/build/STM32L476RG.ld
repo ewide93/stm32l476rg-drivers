@@ -80,6 +80,14 @@ SECTIONS
         _ebss = .;
     } >ram
 
+    .fixed_size_heap (NOLOAD) :
+    {
+        _fixed_size_heap_start = .;
+        *(.fixed_size_heap*)
+        . = ALIGN(4);
+        _fixed_size_heap_end = .;
+    } >ram2
+
     .ram2 :
     {
         _ram2 = .;

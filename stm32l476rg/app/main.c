@@ -50,7 +50,7 @@ int main(void)
 {
     Setup();
     MemPool_Init();
-    U32* TestVar = (U32*)MemPool_Allocate(sizeof(U32) * 9);
+    U32* TestVar = (U32*)MemPool_Allocate(sizeof(U32) * 16);
     // Crc_Enable();
     // Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
     // Crc_Crc8Init(&Crc8Cfg);
@@ -63,7 +63,8 @@ int main(void)
     static StackType_t StackBuffer[256] = { 0 };
     static StaticTask_t StaticTask = { 0 };
     // static U32 Delay_ms = 125U;
-    if (MemPool_GetNofAvailableChunks() == MEMPOOL_NOF_CHUNKS - 2) { TestVar[0] = 500UL; }
+    if (MemPool_GetHighWaterMark() == MEMPOOL_CHUNK_SIZE * 2) { TestVar[0] = 125UL; }
+    else { TestVar[0] = 1000UL; }
     xTaskCreateStatic(TestFunc, "Test", 256, (void*)&TestVar[0], tskIDLE_PRIORITY, StackBuffer, &StaticTask);
 
     vTaskStartScheduler();

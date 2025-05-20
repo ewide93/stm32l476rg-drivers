@@ -17,6 +17,8 @@ extern U32 _edata;
 extern U32 _ebss;
 extern U32 _stack;
 
+extern U32 _fixed_size_heap_start;
+extern U32 _fixed_size_heap_end;
 extern U32 _ram2;
 extern U32 _eram2;
 extern U32 _ram2_loadaddr;
@@ -145,6 +147,13 @@ void ResetHandler(void)
 
     /* Zero-fill .bss section */
     while (DestPtr < &_ebss)
+    {
+        *DestPtr++ = 0;
+    }
+
+    /* Zero-fill fixed size heap section */
+    DestPtr = &_fixed_size_heap_start;
+    while (DestPtr < &_fixed_size_heap_end)
     {
         *DestPtr++ = 0;
     }

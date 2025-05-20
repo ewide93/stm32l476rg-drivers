@@ -42,18 +42,22 @@ typedef struct
     U32 ChunksAvailable;
     U8* FirstChunk;
     U8* LastChunk;
+    #if MEMPOOL_ENABLE_HIGH_WATER_MARK == 1
+        U32 HighWaterMark;
+    #endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
     Bool Initialized;
 } MemPool_InternalType;
 
 /* -------------------------------- Local variables -------------------------------- */
 
-#if (MEMPOOL_USE_RAM2_SECTION == 1)
-    static U8 MemoryPoolBuffer[MEMPOOL_SIZE] ALIGN(MEMPOOL_CHUNK_SIZE) SECTION(".ram2") = { 0 };
+#if (MEMPOOL_USE_FIXED_SIZE_HEAP_SECTION == 1)
+    static U8 MemoryPoolBuffer[MEMPOOL_SIZE] ALIGN(MEMPOOL_CHUNK_SIZE) SECTION(MEMPOOL_FIXED_SIZE_HEAP_SECTION) = { 0 };
 #else
     static U8 MemoryPoolBuffer[MEMPOOL_SIZE] ALIGN(MEMPOOL_CHUNK_SIZE) = { 0 };
 #endif
 
 static MemPool_InternalType Internal = { 0 };
+static Bool MemPool_Enabled = True;
 
 /* --------------------------- Local function definitions -------------------------- */
 
@@ -153,23 +157,29 @@ void MemPool_ClearChunk(U8 Index)
 
 void MemPool_Init(void)
 {
-    Internal.MemoryPool = MemoryPoolBuffer;
-    Internal.ChunksAvailable = MEMPOOL_NOF_CHUNKS;
-    for (U32 i = 0; i < Internal.ChunksAvailable; i++)
+    if (!Internal.Initialized)
     {
-        Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
-        Internal.Chunks[i].Index = i;
-        Internal.Chunks[i].Data = &Internal.MemoryPool[i * MEMPOOL_CHUNK_SIZE];
+        Internal.MemoryPool = MemoryPoolBuffer;
+        Internal.ChunksAvailable = MEMPOOL_NOF_CHUNKS;
+        for (U32 i = 0; i < Internal.ChunksAvailable; i++)
+        {
+            Internal.Chunks[i].Status = CHUNK_STATUS_FREE;
+            Internal.Chunks[i].Index = i;
+            Internal.Chunks[i].Data = &Internal.MemoryPool[i * MEMPOOL_CHUNK_SIZE];
+        }
+        Internal.FirstChunk = Internal.Chunks[0U].Data;
+        Internal.LastChunk = Internal.Chunks[(MEMPOOL_NOF_CHUNKS - 1U)].Data;
+        Internal.Initialized = True;
+        #if MEMPOOL_ENABLE_HIGH_WATER_MARK == 1
+            Internal.HighWaterMark = 0UL;
+        #endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
     }
-    Internal.FirstChunk = Internal.Chunks[0U].Data;
-    Internal.LastChunk = Internal.Chunks[(MEMPOOL_NOF_CHUNKS - 1U)].Data;
-    Internal.Initialized = True;
 }
 
 void* MemPool_Allocate(U32 Size)
 {
     void* ChunkPtr = NULL;
-    if (!Internal.Initialized) { return ChunkPtr; }
+    if (!Internal.Initialized || !MemPool_Enabled) { return ChunkPtr; }
     const U32 ChunksRequired = MemPool_CalcNofChunksRequired(Size);
 
     if (ChunksRequired <= Internal.ChunksAvailable && ChunksRequired > 0)
@@ -207,14 +217,18 @@ void* MemPool_Allocate(U32 Size)
             }
         }
     }
+
+    #if MEMPOOL_ENABLE_HIGH_WATER_MARK == 1
+        const U32 CurrentWaterMark = MEMPOOL_NOF_CHUNKS - Internal.ChunksAvailable;
+        if (CurrentWaterMark > Internal.HighWaterMark) { Internal.HighWaterMark = CurrentWaterMark; }
+    #endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
     return ChunkPtr;
 }
 
 
 void MemPool_Free(void* Address)
 {
-    if (!Internal.Initialized) { return; }
-    if (!MemPool_AddressIsValid(Address)) { return; }
+    if (!Internal.Initialized || !MemPool_Enabled || !MemPool_AddressIsValid(Address)) { return; }
 
     const U8* ChunkPtr = (U8*)Address;
     Bool Done = False;
@@ -254,7 +268,26 @@ void MemPool_Free(void* Address)
     }
 }
 
-U8 MemPool_GetNofAvailableChunks(void)
+U32 MemPool_GetNofFreeBytes(void)
 {
-    return Internal.ChunksAvailable;
+    return Internal.ChunksAvailable * MEMPOOL_CHUNK_SIZE;
 }
+
+Bool MemPool_IsInitialized(void)
+{
+    return Internal.Initialized;
+}
+
+void MemPool_Disable(void)
+{
+    MemPool_Enabled = False;
+}
+
+/* --------------- Conditionally compiled public function definitions. ------------- */
+
+#if MEMPOOL_ENABLE_HIGH_WATER_MARK == 1
+    U32 MemPool_GetHighWaterMark(void)
+    {
+        return Internal.HighWaterMark * MEMPOOL_CHUNK_SIZE;
+    }
+#endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
