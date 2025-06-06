@@ -92,4 +92,13 @@ U32 MemPool_GetNofFreeBytes(void);
     U32 MemPool_GetHighWaterMark(void);
 #endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
 
+/* ----------------- Unit test specific public function definitions. --------------- */
+
+#ifdef UNIT_TEST
+    /**
+     * @brief Reset internal state of the module.
+     */
+    void MemPool_Reset(void);
+#endif /* UNIT_TEST */
+
 #endif /* MEMPOOL_H */

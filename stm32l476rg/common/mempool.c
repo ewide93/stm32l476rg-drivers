@@ -291,3 +291,18 @@ void MemPool_Disable(void)
         return Internal.HighWaterMark * MEMPOOL_CHUNK_SIZE;
     }
 #endif /* MEMPOOL_ENABLE_HIGH_WATER_MARK == 1 */
+
+/* ----------------- Unit test specific public function definitions. --------------- */
+
+#ifdef UNIT_TEST
+    void MemPool_Reset(void)
+    {
+        Internal.MemoryPool = MemoryPoolBuffer;
+        for (U32 i; i < MEMPOOL_SIZE; i++)
+        {
+            Internal.MemoryPool = 0;
+        }
+        Internal.Initialized = False;
+    }
+
+#endif /* UNIT_TEST */

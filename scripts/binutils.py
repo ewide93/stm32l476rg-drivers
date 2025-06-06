@@ -66,7 +66,7 @@ class Binutils:
                     symbols.append(
                         cls.Symbol(
                             name,
-                            hex(int(address, 16)),
+                            int(address, 16),
                             int(size, 16),
                             symbol_type,
                             src_file,
@@ -84,7 +84,7 @@ class Binutils:
                     "\n" + f"-- Source file: {symbol.src_file} ".ljust(88, "-") + "\n"
                 )
             parsed_output += f"Name: {symbol.name}\n"
-            parsed_output += f"\tAddress: {symbol.address}".ljust(22, " ")
+            parsed_output += f"\tAddress: {hex(symbol.address)}".ljust(22, " ")
             parsed_output += f"Size: {symbol.size}".ljust(10, " ")
             parsed_output += f"Line: {symbol.line_num}".ljust(10, " ")
             parsed_output += f"Type: {cls.symbol_type_to_str(symbol)}\n"

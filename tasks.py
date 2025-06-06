@@ -1,10 +1,11 @@
 import os
 import sys
 import re
-from invoke import task
+from invoke.tasks import task
 from invoke.context import Context
 from pathlib import Path
 from scripts.binutils import Binutils
+from typing import Any
 
 
 PATHS = {
@@ -51,20 +52,22 @@ def size(ctx: Context) -> None:
     if not PATHS["elf"].exists():
         print(f"Path {PATHS['elf']} does not exist.")
     output = ctx.run(f"{Binutils.COMMANDS["size"]} {PATHS['elf']}", hide=True)
-    text, data, bss = Binutils.parse_size(output.stdout)
-    flash_used = text + data
-    flash_used_percent = round(flash_used / DEVICE_INFO["flash"]["bytes"] * 100, 2)
-    ram_used = data + bss
-    ram_used_percent = round(ram_used / DEVICE_INFO["ram"]["bytes"] * 100, 2)
-    print(f"Flash used: {flash_used_percent}% ({flash_used} B)")
-    print(f"RAM used: {ram_used_percent}% ({ram_used} B)")
+    if output is not None:
+        text, data, bss = Binutils.parse_size(output.stdout)
+        flash_used = text + data
+        flash_used_percent = round(flash_used / DEVICE_INFO["flash"]["bytes"] * 100, 2)
+        ram_used = data + bss
+        ram_used_percent = round(ram_used / DEVICE_INFO["ram"]["bytes"] * 100, 2)
+        print(f"Flash used: {flash_used_percent}% ({flash_used} B)")
+        print(f"RAM used: {ram_used_percent}% ({ram_used} B)")
 
 
 @task()
 def nm(ctx: Context) -> None:
     """List the symbols in the firmware image."""
     output = ctx.run(f"{Binutils.COMMANDS["nm"]} {PATHS['elf']}", hide=True)
-    print(Binutils.parse_nm(output.stdout))
+    if output is not None:
+        print(Binutils.parse_nm(output.stdout))
 
 
 @task()
@@ -90,7 +93,7 @@ def parse_test_results(results: Path) -> int:
     fail_cnt = 0
     skip_cnt = 0
     return_code = 0
-    with open(results, mode="r") as istream:
+    with results.open() as istream:
         regex = re.compile(r"^([0-9]+) Tests ([0-9]+) Failures ([0-9]+) Ignored$")
         for line in istream:
             match = regex.match(line.strip())
@@ -125,3 +128,7 @@ def test(ctx: Context) -> None:
     with ctx.cd(PATHS["test_dir"]):
         ctx.run("make clean")
     sys.exit(return_code)
+
+@task(aliases=["wtf"])
+def hmm(ctx: Context, a: Any = False) -> None:
+    print(f"Running hmm task with a={a}")

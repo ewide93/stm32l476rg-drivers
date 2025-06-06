@@ -1,6 +1,11 @@
 #include "mempool.h"
 #include "unity.h"
 
+#if MEMPOOL_ENABLE_HIGH_WATER_MARK != 1
+    #undef MEMPOOL_ENABLE_HIGH_WATER_MARK
+    #define MEMPOOL_ENABLE_HIGH_WATER_MARK 1
+#endif
+
 /* --------------------------- Setup & teardown functions -------------------------- */
 
 void setUp(void)
@@ -17,125 +22,137 @@ void tearDown(void)
 
 void Test_UninitializedModuleFailsToAllocate(void)
 {
-    U8* ExpectedNullBuffer = (U8*)MemPool_Allocate(CHUNK_SIZE);
+    U8* ExpectedNullBuffer = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
     MemPool_Init();
-    U8* ExpectedValidBuffer = (U8*)MemPool_Allocate(CHUNK_SIZE);
+    U8* ExpectedValidBuffer = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
     TEST_ASSERT_NULL(ExpectedNullBuffer);
     TEST_ASSERT_NOT_NULL(ExpectedValidBuffer);
 }
 
 void Test_AllocateOneChunk(void)
 {
-    U8 AvailableChunksAtStart = MemPool_GetNofAvailableChunks();
-    U8* Buffer = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8 AvailableChunksAfterAllocation = MemPool_GetNofAvailableChunks();
-    TEST_ASSERT_EQUAL(NOF_CHUNKS, AvailableChunksAtStart);
+    MemPool_Init();
+    U32 AvailableBytesAtStart = MemPool_GetNofFreeBytes();
+    U8* Buffer = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
+    U32 AvailableBytesAfterAllocation = MemPool_GetNofFreeBytes();
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, AvailableBytesAtStart);
     TEST_ASSERT_NOT_NULL(Buffer);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS - 1, AvailableChunksAfterAllocation);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE, AvailableBytesAfterAllocation);
 }
 
 void Test_TooLargeAllocationFails(void)
 {
-    U8* TooLargeBuffer = (U8*)MemPool_Allocate(POOL_SIZE + 1);
+    MemPool_Init();
+    U8* TooLargeBuffer = (U8*)MemPool_Allocate(MEMPOOL_SIZE + 1);
     TEST_ASSERT_NULL(TooLargeBuffer);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetNofFreeBytes());
 }
 
 void Test_SizeZeroAllocationFails(void)
 {
+    MemPool_Init();
     U8* ExpectedNullBuffer = (U8*)MemPool_Allocate(0);
     TEST_ASSERT_NULL(ExpectedNullBuffer);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetNofFreeBytes());
 }
 
 void Test_AllocateTwoChunks(void)
 {
-    U8 AvailableChunksAtStart = MemPool_GetNofAvailableChunks();
-    U8* Buffer = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
-    TEST_ASSERT_EQUAL(AvailableChunksAtStart, NOF_CHUNKS);
+    MemPool_Init();
+    U32 AvailableBytesAtStart = MemPool_GetNofFreeBytes();
+    U8* Buffer = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, AvailableBytesAtStart);
     TEST_ASSERT_NOT_NULL(Buffer);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS - 2, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE * 2, MemPool_GetNofFreeBytes());
 }
 
 void Test_AllocateTwoSeparateTwoChunkAllocations(void)
 {
-    U8 AvailableChunksAtStart = MemPool_GetNofAvailableChunks();
-    U8* Buffer1 = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
-    U8* Buffer2 = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
-    TEST_ASSERT_EQUAL(AvailableChunksAtStart, NOF_CHUNKS);
+    MemPool_Init();
+    U32 AvailableBytesAtStart = MemPool_GetNofFreeBytes();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, AvailableBytesAtStart);
     TEST_ASSERT_NOT_NULL(Buffer1);
     TEST_ASSERT_NOT_NULL(Buffer2);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS - 4, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE * 4, MemPool_GetNofFreeBytes());
+    TEST_ASSERT_EQUAL(MEMPOOL_CHUNK_SIZE * 4, MemPool_GetHighWaterMark());
 }
 
 void Test_AllocateTwoSeparateTwoChunkAllocationsThenFree(void)
 {
-    U8* Buffer1 = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
-    U8* Buffer2 = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
+    MemPool_Init();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
     TEST_ASSERT_NOT_NULL(Buffer1);
     TEST_ASSERT_NOT_NULL(Buffer2);
     MemPool_Free(Buffer1);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS - 2, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE * 2, MemPool_GetNofFreeBytes());
     MemPool_Free(Buffer2);
-    TEST_ASSERT_EQUAL(NOF_CHUNKS, MemPool_GetNofAvailableChunks());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetNofFreeBytes());
+    TEST_ASSERT_EQUAL(MEMPOOL_CHUNK_SIZE * 4, MemPool_GetHighWaterMark());
 }
 
 void Test_AllocatiorHandlesSimpleFragmentation(void)
 {
-    U8* Buffer1 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer2 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer3 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer4 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer5 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer6 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer7 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer8 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    TEST_ASSERT_EQUAL(0, MemPool_GetNofAvailableChunks());
+    MemPool_Init();
+    const U32 QuarterPool = MEMPOOL_NOF_CHUNKS / 4U;
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * QuarterPool);
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * QuarterPool);
+    U8* Buffer3 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * QuarterPool);
+    U8* Buffer4 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * QuarterPool);
+    TEST_ASSERT_EQUAL(0, MemPool_GetNofFreeBytes());
 
-    MemPool_Free(Buffer4);
-    MemPool_Free(Buffer5);
-    MemPool_Free(Buffer6);
-    U8* Buffer9 = (U8*)MemPool_Allocate(CHUNK_SIZE * 3);
-    TEST_ASSERT_NOT_NULL(Buffer9);
+    MemPool_Free(Buffer2);
+    TEST_ASSERT_EQUAL(QuarterPool * MEMPOOL_CHUNK_SIZE, MemPool_GetNofFreeBytes());
+
+    U8* Buffer5 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * QuarterPool);
+    TEST_ASSERT_NOT_NULL(Buffer5);
+    TEST_ASSERT_EQUAL(0, MemPool_GetNofFreeBytes());
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetHighWaterMark());
 }
 
 void Test_AllocationFailsIfNotContiguousTwoChunks(void)
 {
-    U8* Buffer1 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer2 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer3 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer4 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer5 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer6 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer7 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer8 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    TEST_ASSERT_EQUAL(0, MemPool_GetNofAvailableChunks());
+    MemPool_Init();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_SIZE - 2 * MEMPOOL_CHUNK_SIZE);
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
+    TEST_ASSERT_NOT_NULL(Buffer1);
+    TEST_ASSERT_NOT_NULL(Buffer2);
+    TEST_ASSERT_EQUAL(MEMPOOL_CHUNK_SIZE, MemPool_GetNofFreeBytes());
 
+    /* Try to allocate two chunks where only one is available. */
+    U8* Buffer3 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    TEST_ASSERT_NULL(Buffer3);
     MemPool_Free(Buffer2);
-    MemPool_Free(Buffer4);
-    U8* Buffer9 = (U8*)MemPool_Allocate(CHUNK_SIZE * 2);
-    TEST_ASSERT_NULL(Buffer9);
-    TEST_ASSERT_EQUAL(2, MemPool_GetNofAvailableChunks());
+    Buffer3 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    TEST_ASSERT_NOT_NULL(Buffer3);
+    TEST_ASSERT_EQUAL(0, MemPool_GetNofFreeBytes());
 }
 
 void Test_AllocationFailsIfNotContiguousThreeChunks(void)
 {
-    U8* Buffer1 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer2 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer3 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer4 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer5 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer6 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer7 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    U8* Buffer8 = (U8*)MemPool_Allocate(CHUNK_SIZE);
-    TEST_ASSERT_EQUAL(0, MemPool_GetNofAvailableChunks());
+    MemPool_Init();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 2);
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
+    U8* Buffer3 = (U8*)MemPool_Allocate(MemPool_GetNofFreeBytes());
+    TEST_ASSERT_EQUAL(0, MemPool_GetNofFreeBytes());
 
+    /* Attempt to allocate 3 chunks where only 2 are available. */
     MemPool_Free(Buffer2);
+    U8* Buffer4 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 3);
+    TEST_ASSERT_NULL(Buffer4);
+
+    /* Free up the missing chunk, now it should be ok to allocate 3 chunks. */
+    MemPool_Free(Buffer1);
+    Buffer4 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE * 3);
+    TEST_ASSERT_NOT_NULL(Buffer4);
+    TEST_ASSERT_EQUAL(0, MemPool_GetNofFreeBytes());
+
+    /* Free all */
     MemPool_Free(Buffer3);
-    MemPool_Free(Buffer5);
-    U8* Buffer9 = (U8*)MemPool_Allocate(CHUNK_SIZE * 3);
-    TEST_ASSERT_NULL(Buffer9);
-    TEST_ASSERT_EQUAL(3, MemPool_GetNofAvailableChunks());
+    MemPool_Free(Buffer4);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetNofFreeBytes());
 }
 
 int main(void)
