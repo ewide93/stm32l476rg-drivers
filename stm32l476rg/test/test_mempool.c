@@ -1,9 +1,14 @@
 #include "mempool.h"
 #include "unity.h"
 
-#if MEMPOOL_ENABLE_HIGH_WATER_MARK != 1
+#if (MEMPOOL_ENABLE_HIGH_WATER_MARK == 0)
     #undef MEMPOOL_ENABLE_HIGH_WATER_MARK
     #define MEMPOOL_ENABLE_HIGH_WATER_MARK 1
+#endif
+
+#if (MEMPOOL_USE_FIXED_SIZE_HEAP_SECTION == 1)
+    #undef MEMPOOL_USE_FIXED_SIZE_HEAP_SECTION
+    #define MEMPOOL_USE_FIXED_SIZE_HEAP_SECTION 1
 #endif
 
 /* --------------------------- Setup & teardown functions -------------------------- */
@@ -155,6 +160,32 @@ void Test_AllocationFailsIfNotContiguousThreeChunks(void)
     TEST_ASSERT_EQUAL(MEMPOOL_SIZE, MemPool_GetNofFreeBytes());
 }
 
+void Test_ChunkBoundaries(void)
+{
+    MemPool_Init();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE - 1);
+    TEST_ASSERT_NOT_NULL(Buffer1);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE, MemPool_GetNofFreeBytes());
+
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE + 1);
+    TEST_ASSERT_NOT_NULL(Buffer2);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE * 3, MemPool_GetNofFreeBytes());
+    TEST_ASSERT_EQUAL(MEMPOOL_CHUNK_SIZE * 3, MemPool_GetHighWaterMark());
+}
+
+void Test_LockMemPool(void)
+{
+    MemPool_Init();
+    U8* Buffer1 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
+    TEST_ASSERT_NOT_NULL(Buffer1);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE, MemPool_GetNofFreeBytes());
+
+    MemPool_Disable();
+    U8* Buffer2 = (U8*)MemPool_Allocate(MEMPOOL_CHUNK_SIZE);
+    TEST_ASSERT_NULL(Buffer2);
+    TEST_ASSERT_EQUAL(MEMPOOL_SIZE - MEMPOOL_CHUNK_SIZE, MemPool_GetNofFreeBytes());
+}
+
 int main(void)
 {
     UNITY_BEGIN();
@@ -169,6 +200,8 @@ int main(void)
     RUN_TEST(Test_AllocatiorHandlesSimpleFragmentation);
     RUN_TEST(Test_AllocationFailsIfNotContiguousTwoChunks);
     RUN_TEST(Test_AllocationFailsIfNotContiguousThreeChunks);
+    RUN_TEST(Test_ChunkBoundaries);
+    RUN_TEST(Test_LockMemPool);
 
     return UNITY_END();
 }

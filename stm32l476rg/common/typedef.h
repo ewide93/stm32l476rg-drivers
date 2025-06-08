@@ -44,6 +44,11 @@ typedef void (*CallbackFunction)(void);
 #endif /* GCC attribute wrapper macros. */
 
 /**
+ * @brief Mark an argument as unused to prevent compiler warnings.
+ */
+#define UNUSED(Arg) ((void)(Arg))
+
+/**
  * @brief Generic return code enumeration.
  */
 typedef enum

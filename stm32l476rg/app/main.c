@@ -43,6 +43,7 @@ Digital_InputType InputC13 =
 void Setup(void);
 
 void TestFunc(void* Arg);
+void TestFunc2(void* Arg);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
@@ -50,24 +51,27 @@ int main(void)
 {
     Setup();
     MemPool_Init();
-    U32* TestVar = (U32*)MemPool_Allocate(sizeof(U32) * 16);
-    // Crc_Enable();
-    // Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
-    // Crc_Crc8Init(&Crc8Cfg);
-    // Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
+    Crc_Enable();
+    Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
+    Crc_Crc8Init(&Crc8Cfg);
+    Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
 
     Digital_OutputInit(&OutputA5);
     Digital_InputInit(&InputC13);
     // Exti_GpioInit(InputC13.PortPin, TestFunc, EXTI_TRIGGER_FALLING_EDGE);
 
-    static StackType_t StackBuffer[256] = { 0 };
-    static StaticTask_t StaticTask = { 0 };
-    // static U32 Delay_ms = 125U;
-    if (MemPool_GetHighWaterMark() == MEMPOOL_CHUNK_SIZE * 2) { TestVar[0] = 125UL; }
-    else { TestVar[0] = 1000UL; }
-    xTaskCreateStatic(TestFunc, "Test", 256, (void*)&TestVar[0], tskIDLE_PRIORITY, StackBuffer, &StaticTask);
+    // static StackType_t StackBuffer[256] = { 0 };
+    // static StaticTask_t StaticTask = { 0 };
+    static U32 Delay_ms = 125U;
+    // if (MemPool_GetHighWaterMark() == MEMPOOL_CHUNK_SIZE * 2) { TestVar[0] = 125UL; }
+    // else { TestVar[0] = 1000UL; }
+    // xTaskCreateStatic(TestFunc, "Test", 256, (void*)&TestVar[0], tskIDLE_PRIORITY, StackBuffer, &StaticTask);
 
-    vTaskStartScheduler();
+    // vTaskStartScheduler();
+
+    Osal_ThreadCreate(TestFunc, (void*)&Delay_ms, 1024, THREAD_PRIORITY_MEDIUM);
+    Osal_ThreadCreate(TestFunc2, NULL, 1024, THREAD_PRIORITY_MEDIUM);
+    Osal_StartScheduler();
 
     while (1)
     {
@@ -133,5 +137,14 @@ void TestFunc(void* Arg)
     {
         Digital_Toggle(&OutputA5);
         Osal_Delay_ms(BlinkPeriod_ms);
+    }
+}
+
+void TestFunc2(void* Arg)
+{
+    UNUSED(Arg);
+    while (True)
+    {
+        Protocol_Run();
     }
 }

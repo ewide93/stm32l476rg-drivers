@@ -31,35 +31,36 @@
 
 #include "typedef.h"
 
-/* --------------------------- RTOS-agnostic OSAL settings ------------------------- */
+/* --------------------- RTOS agnostic preprocessor definitions -------------------- */
 
-/**
- * @brief Set the number of bytes to reserve for RTOS threads.
- */
-#define OSAL_STATIC_MEMORY_SIZE_BYTES (4096U)
+#define OSAL_MAX_NOF_THREADS    (8U)
 
 /* ---------------------- FreeRTOS specific OSAL functionality --------------------- */
-
-/**
- * @todo List of stuff that needs to be done to get FreeRTOS running:
- *
- *       1. Check if configCHECK_FOR_STACK_OVERFLOW is greater than 0.
- *          If this is the case we need to provide a callback function
- *          that will be called upon detection of stack overflow.
- *
- *       2.
- */
 
 #if defined(OSAL_CONFIG_USE_FREERTOS) && (OSAL_CONFIG_USE_FREERTOS == 1)
 
 /* ---------------------- FreeRTOS specific include directives --------------------- */
 
+#include "memory_routines.h"
 #include "port.h"
 #include "FreeRTOS.h"
 #include "task.h"
 
-typedef TickType_t Osal_TickType;
-#define OSAL_WORD_SIZE  (sizeof(StackType_t))
+/* ----------------------- FreeRTOS specific type definitions ---------------------- */
+
+typedef TaskFunction_t Osal_ThreadFunc;
+
+/**
+ * @brief Enumeration of thread priority levels.
+ */
+typedef enum
+{
+    THREAD_PRIORITY_LOWEST = 0,
+    THREAD_PRIORITY_LOW = (configMAX_PRIORITIES - 11),
+    THREAD_PRIORITY_MEDIUM = (configMAX_PRIORITIES - 7),
+    THREAD_PRIORITY_HIGH = (configMAX_PRIORITIES - 4),
+    THREAD_PRIORITY_HIGHEST = (configMAX_PRIORITIES - 1),
+} Osal_PriorityEnum;
 
 /* ----------------------- FreeRTOS specific inline functions ---------------------- */
 
@@ -69,12 +70,12 @@ typedef TickType_t Osal_TickType;
  * @param Milliseconds Time in milliseconds.
  * @return Time in OS ticks.
  */
-static inline Osal_TickType Osal_msToTicks(U32 Milliseconds)
+static inline U32 Osal_msToTicks(U32 Milliseconds)
 {
     #if defined(configTICK_RATE_HZ) && (configTICK_RATE_HZ == 1000U)
-        return (Osal_TickType)Milliseconds;
+        return Milliseconds;
     #else
-        return (Osal_TickType)pdMS_TO_TICKS(Milliseconds);
+        return (U32)pdMS_TO_TICKS(Milliseconds);
     #endif
 }
 
@@ -84,23 +85,38 @@ static inline Osal_TickType Osal_msToTicks(U32 Milliseconds)
  * @param Ticks Number of ticks.
  * @return Time in milliseconds.
  */
-static inline U32 Osal_msFromTicks(Osal_TickType Ticks)
+static inline U32 Osal_msFromTicks(U32 Ticks)
 {
     #if defined(configTICK_RATE_HZ) && (configTICK_RATE_HZ == 1000U)
         return Ticks;
     #else
-        return (U32)pdTICKS_TO_MS(Ticks);
+        return (U32)pdTICKS_TO_MS((TickType_t)Ticks);
     #endif
 }
 
-/* --------------------- FreeRTOS specific function prototypes --------------------- */
+#endif /* FreeRTOS specific */
+
+/* ----------------------- RTOS agnostic function prototypes ----------------------- */
 
 /**
- * @brief
+ * @brief Delay the current thread of execution.
+ * @param Delay Delay time in milliseconds.
  */
 void Osal_Delay_ms(U32 Delay);
 
+/**
+ * @brief Start the scheduler.
+ */
+void Osal_StartScheduler(void);
 
-#endif /* FreeRTOS specific */
+/**
+ * @brief Create thread.
+ * @param Func Thread function.
+ * @param Arg Argument passed to thread function. Can be NULL.
+ * @param StackSize Size of thread stack in bytes.
+ * @param Priority Thread priority.
+ * @return ID assigned to thread. A value of -1 indicates thread creation failed.
+ */
+S32 Osal_ThreadCreate(Osal_ThreadFunc Func, void* Arg, U32 StackSize, Osal_PriorityEnum Priority);
 
 #endif /* OSAL_H */
