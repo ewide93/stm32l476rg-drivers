@@ -8,6 +8,7 @@
 
 #include "osal.h"
 #include "mempool.h"
+#include "range.h"
 
 /* ------------------------ OSAL implementation for FreeRTOS ----------------------- */
 
@@ -20,13 +21,14 @@ typedef struct
     StaticTask_t Tcb;           // Task control block
     TaskHandle_t TaskHandle;    // Task handle
     U8* StackPtr;               // Pointer to thread stack.
+    U32 StackSize;              // Thread stack size in bytes.
     S32 Id;                     // Incremental unique ID assigned to threads.
 } Osal_ThreadMetadata;
 
 /* -------------------------------- Local variables -------------------------------- */
 
-static Osal_ThreadMetadata OsalMetadata[OSAL_MAX_NOF_THREADS] = { 0 };
-static U8 NofThreads = 0U;
+static Osal_ThreadMetadata Private_Threads[OSAL_MAX_NOF_THREADS] = { 0 };
+static U8 Private_NofThreads = 0U;
 
 /* ----------------- FreeRTOS specific local function declarations ----------------- */
 
@@ -44,7 +46,7 @@ static inline Bool Osal_ThreadCreateArgsValid(Osal_ThreadFunc Func, U32 StackSiz
     const Bool MemoryOk = (MemPool_GetNofFreeBytes() >= StackSize);
     const Bool FuncNonNull = (Func != NULL);
     const Bool PrioOk = (Priority <= THREAD_PRIORITY_HIGHEST);
-    const Bool ThreadLimitNotReached = (NofThreads < OSAL_MAX_NOF_THREADS);
+    const Bool ThreadLimitNotReached = (Private_NofThreads < OSAL_MAX_NOF_THREADS);
     return MemoryOk && FuncNonNull && PrioOk && ThreadLimitNotReached;
 }
 
@@ -58,7 +60,7 @@ void Osal_Delay_ms(U32 Delay_ms)
 
 void Osal_StartScheduler(void)
 {
-    if (NofThreads > 0U) { vTaskStartScheduler(); }
+    if (Private_NofThreads > 0U) { vTaskStartScheduler(); }
 }
 
 S32 Osal_ThreadCreate(Osal_ThreadFunc Func, void* Arg, U32 StackSize, Osal_PriorityEnum Priority)
@@ -66,32 +68,53 @@ S32 Osal_ThreadCreate(Osal_ThreadFunc Func, void* Arg, U32 StackSize, Osal_Prior
     S32 RetVal = -1;
     if (Osal_ThreadCreateArgsValid(Func, StackSize, Priority))
     {
-        OsalMetadata[NofThreads].StackPtr = (U8*)MemPool_Allocate(StackSize);
-        if (OsalMetadata[NofThreads].StackPtr != NULL)
+        Private_Threads[Private_NofThreads].StackPtr = (U8*)MemPool_Allocate(StackSize);
+        if (Private_Threads[Private_NofThreads].StackPtr != NULL)
         {
             // Use an ASCII representation of the thread ID as the thread name.
+            /**
+             * @todo Handle ASCII conversion better (multiple digits?)
+             */
             Char Name[2] = { '\0', '\0' };
-            Name[0] = (Char)(NofThreads + 0x30);
+            Name[0] = (Char)(Private_NofThreads + 0x30);
 
             // Calculate stack size into number of words.
             const size_t NofWords = StackSize / sizeof(StackType_t);
 
-            OsalMetadata[NofThreads].TaskHandle = xTaskCreateStatic(Func, Name, NofWords, Arg, Priority, (StackType_t*)OsalMetadata[NofThreads].StackPtr, &OsalMetadata[NofThreads].Tcb);
+            Private_Threads[Private_NofThreads].TaskHandle = xTaskCreateStatic(Func, Name, NofWords, Arg, Priority, (StackType_t*)Private_Threads[Private_NofThreads].StackPtr, &Private_Threads[Private_NofThreads].Tcb);
 
             // Check if thread was created successfully, if not, free allocated stack.
-            if (OsalMetadata[NofThreads].TaskHandle != NULL)
+            if (Private_Threads[Private_NofThreads].TaskHandle != NULL)
             {
-                RetVal = NofThreads;
-                NofThreads++;
+                RetVal = Private_NofThreads;
+                Private_Threads[Private_NofThreads].Id = Private_NofThreads;
+                Private_Threads[Private_NofThreads].StackSize = StackSize;
+                Private_NofThreads++;
             }
             else
             {
-                MemPool_Free(OsalMetadata[NofThreads].StackPtr);
+                MemPool_Free(Private_Threads[Private_NofThreads].StackPtr);
             }
         }
 
     }
     return RetVal;
+}
+
+void Osal_ThreadSuspend(S32 Id)
+{
+    if (Range_S32(Id, 0, OSAL_MAX_NOF_THREADS))
+    {
+        vTaskSuspend(Private_Threads[Id].TaskHandle);
+    }
+}
+
+void Osal_ThreadResume(S32 Id)
+{
+    if (Range_S32(Id, 0, OSAL_MAX_NOF_THREADS))
+    {
+        vTaskResume(Private_Threads[Id].TaskHandle);
+    }
 }
 
 #endif /* FreeRTOS specific */

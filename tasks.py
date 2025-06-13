@@ -1,4 +1,3 @@
-import os
 import sys
 import re
 from invoke.tasks import task
@@ -29,7 +28,7 @@ DEVICE_INFO = {
 def build(ctx: Context) -> None:
     """Build the firmware image."""
     with ctx.cd(PATHS["build_dir"]):
-        ctx.run(f"make -j {os.getenv('NUMBER_OF_PROCESSORS')}")
+        ctx.run("make")
 
 
 @task()

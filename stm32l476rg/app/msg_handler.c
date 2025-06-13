@@ -8,7 +8,7 @@
 /* ------------------------------- Include directives ------------------------------ */
 #include "msg_handler.h"
 #include "crc.h"
-#include "systick.h"
+#include "osal.h"
 
 /*  ----------------- Structures, enumerations & type definitions ------------------ */
 
@@ -98,10 +98,15 @@ void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* Tx
 {
     /* RxMsg parameter unused */
     (void)RxMsg;
+    static Bool Dummy = False;
 
     TxMsg->Id = ACK_RESPONSE;
-    *((U32*)(&TxMsg->Payload[0])) = SysTick_GetTicks();
-    *((U32*)(&TxMsg->Payload[4])) = SysTick_GetNofWrapArounds();
+    *((U32*)(&TxMsg->Payload[0])) = 0xDEADC0DE;
+    *((U32*)(&TxMsg->Payload[4])) = 0xDEADC0DE;
+    Dummy = !Dummy;
+    if (Dummy) { Osal_ThreadSuspend(0); }
+    else { Osal_ThreadResume(0); }
+
     TxMsg->Crc = MsgHandler_CalcCrc(TxMsg);
 }
 

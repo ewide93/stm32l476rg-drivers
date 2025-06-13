@@ -298,11 +298,12 @@ void MemPool_Disable(void)
     void MemPool_Reset(void)
     {
         Internal.MemoryPool = MemoryPoolBuffer;
-        for (U32 i; i < MEMPOOL_SIZE; i++)
+        for (U32 i = 0; i < MEMPOOL_SIZE; i++)
         {
             Internal.MemoryPool = 0;
         }
         Internal.Initialized = False;
+        MemPool_Enabled = True;
     }
 
 #endif /* UNIT_TEST */

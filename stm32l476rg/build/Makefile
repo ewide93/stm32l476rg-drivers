@@ -1,4 +1,16 @@
 # -------------------------------------------------------------------------------------
+# Make configuration
+# -------------------------------------------------------------------------------------
+ifdef NUMBER_OF_PROCESSORS
+	NUM_CORES := $(NUMBER_OF_PROCESSORS)
+else
+	NUM_CORES := 4
+endif
+MAKEFLAGS += -j$(NUM_CORES)
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --warn-undefined-variables
+
+# -------------------------------------------------------------------------------------
 # Paths to navigate project structure
 # -------------------------------------------------------------------------------------
 TARGET := STM32L476RG

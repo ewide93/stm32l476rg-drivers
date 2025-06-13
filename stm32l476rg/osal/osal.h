@@ -33,7 +33,7 @@
 
 /* --------------------- RTOS agnostic preprocessor definitions -------------------- */
 
-#define OSAL_MAX_NOF_THREADS    (8U)
+#define OSAL_MAX_NOF_THREADS    (8)
 
 /* ---------------------- FreeRTOS specific OSAL functionality --------------------- */
 
@@ -118,5 +118,18 @@ void Osal_StartScheduler(void);
  * @return ID assigned to thread. A value of -1 indicates thread creation failed.
  */
 S32 Osal_ThreadCreate(Osal_ThreadFunc Func, void* Arg, U32 StackSize, Osal_PriorityEnum Priority);
+
+/**
+ * @brief Suspend execution of the thread with the given ID.
+ * @param Id Thread ID returned from Osal_ThreadCreate.
+ */
+void Osal_ThreadSuspend(S32 Id);
+
+/**
+ * @brief Resume execution of a thread that has been suspended using
+ *        Osal_ThreadSuspend.
+ * @param Id Thread ID returned from Osal_ThreadCreate.
+ */
+void Osal_ThreadResume(S32 Id);
 
 #endif /* OSAL_H */
