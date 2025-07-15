@@ -26,9 +26,10 @@ typedef void (*WatchpointCallback)(void);
 typedef enum
 {
     WATCHPOINT_STATUS_OK = 0U,                  /* Ok */
-    WATCHPOINT_STATUS_WRONG_ALIGNMENT = 1U,     /* Address not aligned on 4-byte boundary */
-    WATCHPOINT_STATUS_HW_LIMIT = 2U,            /* All comparators already in use */
-    WATCHPOINT_STATUS_UNKNOWN_ADDRESS = 3U,     /* Address not assigned to any watchpoint */
+    WATCHPOINT_STATUS_UNINITIALIZED = 1U,       /* Watchpoint comparator functions called before initializiation */
+    WATCHPOINT_STATUS_WRONG_ALIGNMENT = 2U,     /* Address not aligned on 4-byte boundary */
+    WATCHPOINT_STATUS_HW_LIMIT = 3U,            /* All comparators already in use */
+    WATCHPOINT_STATUS_UNKNOWN_ADDRESS = 4U,     /* Address not assigned to any watchpoint */
 } WatchpointComparatorStatusEnum;
 
 /* -------------------------- Public function declarations ------------------------- */
@@ -131,13 +132,13 @@ static inline Bool TraceSamplingIsAvailable(void)
 static inline void DebugMonitorExceptionEnable(void)
 {
     __COMPILER_BARRIER();
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_MON_EN_Msk;
+    CoreDebug->DEMCR |= (CoreDebug_DEMCR_MON_EN_Msk | CoreDebug_DEMCR_TRCENA_Msk);
     __COMPILER_BARRIER();
 }
 
 static inline void DebugMonitorExceptionDisable(void)
 {
-    CoreDebug->DEMCR &= ~CoreDebug_DEMCR_MON_EN_Msk;
+    CoreDebug->DEMCR &= ~(CoreDebug_DEMCR_MON_EN_Msk | CoreDebug_DEMCR_TRCENA_Msk);
     __DSB();
     __ISB();
 }

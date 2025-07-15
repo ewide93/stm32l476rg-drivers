@@ -19,13 +19,14 @@
 #include "exti.h"
 #include "mempool.h"
 #include "osal.h"
+#include "core_debug.h"
 
 Digital_OutputType OutputA5 =
 {
     .PortPin = PIN_A5,
     .OutputType = PIN_OUT_TYPE_PUSH_PULL,
     .Speed = PIN_SPEED_LOW,
-    .InitVal = HIGH
+    .InitVal = DIGITAL_STATE_HIGH
 };
 
 Digital_InputType InputC13 =
@@ -33,6 +34,9 @@ Digital_InputType InputC13 =
     .PortPin = PIN_C13,
     .Resistor = PIN_RES_NONE,
 };
+
+static Bool WatchpointTriggered = False;
+U32 GlobalVar[4] ALIGN(4) = { 0 };
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -44,6 +48,11 @@ void Setup(void);
 
 void TestFunc(void* Arg);
 void TestFunc2(void* Arg);
+void DummyButtonFunc(void);
+void DummyCompHandler0(void);
+void DummyCompHandler1(void);
+void DummyCompHandler2(void);
+void DummyCompHandler3(void);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
@@ -55,27 +64,26 @@ int main(void)
     Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
     Crc_Crc8Init(&Crc8Cfg);
     Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
+    WatchpointComparatorsInit();
+    NVIC_SetPriority(DebugMonitor_IRQn, 0UL);
+    DebugMonitorExceptionEnable();
+    DataWatchpointSet(&GlobalVar[0], DummyCompHandler0);
+    DataWatchpointSet(&GlobalVar[1], DummyCompHandler1);
+    DataWatchpointSet(&GlobalVar[2], DummyCompHandler2);
+    DataWatchpointSet(&GlobalVar[3], DummyCompHandler3);
 
     Digital_OutputInit(&OutputA5);
     Digital_InputInit(&InputC13);
-    // Exti_GpioInit(InputC13.PortPin, TestFunc, EXTI_TRIGGER_FALLING_EDGE);
+    Exti_GpioInit(InputC13.PortPin, DummyButtonFunc, EXTI_TRIGGER_FALLING_EDGE);
 
-    // static StackType_t StackBuffer[256] = { 0 };
-    // static StaticTask_t StaticTask = { 0 };
-    static U32 Delay_ms = 125U;
-    // if (MemPool_GetHighWaterMark() == MEMPOOL_CHUNK_SIZE * 2) { TestVar[0] = 125UL; }
-    // else { TestVar[0] = 1000UL; }
-    // xTaskCreateStatic(TestFunc, "Test", 256, (void*)&TestVar[0], tskIDLE_PRIORITY, StackBuffer, &StaticTask);
-
-    // vTaskStartScheduler();
-
-    Osal_ThreadCreate(TestFunc, (void*)&Delay_ms, 1024, THREAD_PRIORITY_MEDIUM);
+    Osal_ThreadCreate(TestFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
     Osal_ThreadCreate(TestFunc2, NULL, 1024, THREAD_PRIORITY_MEDIUM);
     Osal_StartScheduler();
 
     while (1)
     {
-        // Protocol_Run();
+        /* Should never get here after OS scheduler is started. */
+
     }
 
     return 0;
@@ -132,11 +140,11 @@ void Setup(void)
 
 void TestFunc(void* Arg)
 {
-    const U32 BlinkPeriod_ms = *((U32*)Arg);
+    UNUSED(Arg);
     while (True)
     {
-        Digital_Toggle(&OutputA5);
-        Osal_Delay_ms(BlinkPeriod_ms);
+        if (WatchpointTriggered) { Digital_Set(&OutputA5); }
+        else { Digital_Clear(&OutputA5); }
     }
 }
 
@@ -147,4 +155,32 @@ void TestFunc2(void* Arg)
     {
         Protocol_Run();
     }
+}
+
+void DummyButtonFunc(void)
+{
+    static U8 ButtonCnt = 0U;
+    GlobalVar[ButtonCnt] = 0xDEADBEEFUL;
+    ButtonCnt++;
+    if (ButtonCnt > 3) { ButtonCnt = 0; }
+}
+
+void DummyCompHandler0(void)
+{
+    WatchpointTriggered = True;
+}
+
+void DummyCompHandler1(void)
+{
+    WatchpointTriggered = False;
+}
+
+void DummyCompHandler2(void)
+{
+    WatchpointTriggered = True;
+}
+
+void DummyCompHandler3(void)
+{
+    WatchpointTriggered = False;
 }

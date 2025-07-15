@@ -15,7 +15,7 @@ void Digital_OutputInit(const Digital_OutputType* Output)
     Pin_SetMode(Output->PortPin, PIN_MODE_OUTPUT);
     Pin_SetOutputType(Output->PortPin, Output->OutputType);
     Pin_SetSpeed(Output->PortPin, Output->Speed);
-    if (Output->InitVal == HIGH) { Digital_Set(Output); }
+    if (Output->InitVal == DIGITAL_STATE_HIGH) { Digital_Set(Output); }
     else { Digital_Clear(Output); }
 }
 

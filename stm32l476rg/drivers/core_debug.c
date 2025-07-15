@@ -18,8 +18,9 @@
 
  /* ------------------------------- Private variables ------------------------------- */
 
-WatchpointComparatorType WatchpointComparators[NOF_WATCHPOINT_COMPARATORS_MAX] = { 0 };
-U8 NofEnabledComparators = 0U;
+static WatchpointComparatorType WatchpointComparators[NOF_WATCHPOINT_COMPARATORS_MAX] = { 0 };
+static U8 NofEnabledComparators = 0U;
+static Bool WatchpointComparatorsInitialized = False;
 
 /* -------------------------- Private function declarations ------------------------- */
 
@@ -92,10 +93,14 @@ U32 ComputeCycleCounterDiff(U32 Start, U32 Stop)
 
 void WatchpointComparatorsInit(void)
 {
-    for (U8 i = 0; i < NOF_WATCHPOINT_COMPARATORS_MAX; i++)
+    if (!WatchpointComparatorsInitialized)
     {
-        WatchpointComparators[i].Callback = WatchpointComparatorDefaultHandler;
-        WatchpointComparators[i].Enabled = False;
+        for (U8 i = 0; i < NOF_WATCHPOINT_COMPARATORS_MAX; i++)
+        {
+            WatchpointComparators[i].Callback = WatchpointComparatorDefaultHandler;
+            WatchpointComparators[i].Enabled = False;
+        }
+        WatchpointComparatorsInitialized = True;
     }
 }
 
@@ -133,7 +138,11 @@ WatchpointComparatorStatusEnum DataWatchpointSet(U32* Address, WatchpointCallbac
     WatchpointComparatorStatusEnum Status;
     S8 ComparatorIndex = FindComparatorIndex();
 
-    if (ComparatorIndex < 0)
+    if (!WatchpointComparatorsInitialized)
+    {
+        Status = WATCHPOINT_STATUS_UNINITIALIZED;
+    }
+    else if (ComparatorIndex < 0)
     {
         Status = WATCHPOINT_STATUS_HW_LIMIT;
     }
@@ -143,34 +152,35 @@ WatchpointComparatorStatusEnum DataWatchpointSet(U32* Address, WatchpointCallbac
     }
     else
     {
+        const U32 TmpAddr = (U32)Address;
         switch (ComparatorIndex)
         {
             case 0:
             {
-                DWT->COMPARATOR0 = (U32)Address;
+                DWT->COMPARATOR0 = TmpAddr;
                 DWT->MASK0 = 0x00UL;
-                DWT->FUNCTION0 |= (0x3U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
+                DWT->FUNCTION0 |= (0x6U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
                 break;
             }
             case 1:
             {
-                DWT->COMPARATOR1 = (U32)Address;
+                DWT->COMPARATOR1 = TmpAddr;
                 DWT->MASK1 = 0x00UL;
-                DWT->FUNCTION1 |= (0x3U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
+                DWT->FUNCTION1 |= (0x6U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
                 break;
             }
             case 2:
             {
-                DWT->COMPARATOR2 = (U32)Address;
+                DWT->COMPARATOR2 = TmpAddr;
                 DWT->MASK2 = 0x00UL;
-                DWT->FUNCTION2 |= (0x3U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
+                DWT->FUNCTION2 |= (0x6U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
                 break;
             }
             case 3:
             {
-                DWT->COMPARATOR3 = (U32)Address;
+                DWT->COMPARATOR3 = TmpAddr;
                 DWT->MASK3 = 0x00UL;
-                DWT->FUNCTION3 |= (0x3U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
+                DWT->FUNCTION3 |= (0x6U << DWT_FUNCTION_FUNCTION_Pos) | (0x2U << DWT_FUNCTION_DATAVSIZE_Pos);
                 break;
             }
             default:
@@ -189,6 +199,7 @@ WatchpointComparatorStatusEnum DataWatchpointSet(U32* Address, WatchpointCallbac
 
 void ComparatorClear(U8 Index)
 {
+    Bool ValidIndex = True;
     switch (Index)
     {
         case 0:
@@ -221,12 +232,17 @@ void ComparatorClear(U8 Index)
         }
         default:
         {
+            ValidIndex = False;
             break;
         }
     }
-    WatchpointComparators[Index].Enabled = False;
-    WatchpointComparators[Index].Callback = WatchpointComparatorDefaultHandler;
-    NofEnabledComparators--;
+
+    if (ValidIndex)
+    {
+        WatchpointComparators[Index].Enabled = False;
+        WatchpointComparators[Index].Callback = WatchpointComparatorDefaultHandler;
+        NofEnabledComparators--;
+    }
 }
 
 WatchpointComparatorStatusEnum DataWatchpointClear(const U32* Address)
@@ -279,4 +295,7 @@ void DebugMonHandler(void)
     {
         WatchpointComparators[3].Callback();
     }
+
+    /* Clear exception pending bit */
+    CoreDebug->DEMCR &= ~CoreDebug_DEMCR_MON_PEND_Msk;
 }

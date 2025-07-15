@@ -20,8 +20,8 @@
  */
 typedef enum
 {
-    LOW = 0x0U,
-    HIGH = 0x1U
+    DIGITAL_STATE_LOW = 0x0U,
+    DIGITAL_STATE_HIGH = 0x1U
 } Digital_StateEnum;
 
 /**
