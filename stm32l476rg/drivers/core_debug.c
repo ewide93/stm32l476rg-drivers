@@ -7,6 +7,7 @@
  /* ------------------------------- Include directives ------------------------------ */
  #include "core_debug.h"
  #include "memory_routines.h"
+ #include "limit.h"
 
  /* --------------------------- Structures & enumerations --------------------------- */
 
@@ -100,6 +101,10 @@ void WatchpointComparatorsInit(void)
             WatchpointComparators[i].Callback = WatchpointComparatorDefaultHandler;
             WatchpointComparators[i].Enabled = False;
         }
+
+        U32 DebugMonitorPriority = Limit_U32(DEBUG_MONITOR_EXCEPTION_PRIO, 0UL, 16UL);
+        NVIC_SetPriority(DebugMonitor_IRQn, DebugMonitorPriority);
+        if (!DebugMonitorIsEnabled()) { DebugMonitorExceptionEnable(); }
         WatchpointComparatorsInitialized = True;
     }
 }

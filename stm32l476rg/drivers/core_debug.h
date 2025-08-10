@@ -14,6 +14,7 @@
 /* ---------------------------- Preprocessor definitions --------------------------- */
 
 #define NOF_WATCHPOINT_COMPARATORS_MAX  (4U)
+#define DEBUG_MONITOR_EXCEPTION_PRIO    (0U)
 
 /* --------------------------- Structures & enumerations --------------------------- */
 
@@ -90,6 +91,12 @@ static inline void DebugMonitorExceptionEnable(void);
 static inline void DebugMonitorExceptionDisable(void);
 
 /**
+ * @brief Check if the Debug Monitor exception is enabled.
+ * @return True = enabled, False = not enabled.
+ */
+static inline Bool DebugMonitorIsEnabled(void);
+
+/**
  * @brief Initialize watchpoint comparators.
  */
 void WatchpointComparatorsInit(void);
@@ -141,6 +148,12 @@ static inline void DebugMonitorExceptionDisable(void)
     CoreDebug->DEMCR &= ~(CoreDebug_DEMCR_MON_EN_Msk | CoreDebug_DEMCR_TRCENA_Msk);
     __DSB();
     __ISB();
+}
+
+static inline Bool DebugMonitorIsEnabled(void)
+{
+    U32 TmpDEMCR = CoreDebug->DEMCR;
+    return (TmpDEMCR & CoreDebug_DEMCR_MON_EN_Msk) && (TmpDEMCR & CoreDebug_DEMCR_TRCENA_Msk);
 }
 
 #endif /* CORE_DEBUG */

@@ -21,6 +21,8 @@
 #include "osal.h"
 #include "core_debug.h"
 
+/* -------------------------------- Global variables ------------------------------- */
+
 Digital_OutputType OutputA5 =
 {
     .PortPin = PIN_A5,
@@ -28,15 +30,6 @@ Digital_OutputType OutputA5 =
     .Speed = PIN_SPEED_LOW,
     .InitVal = DIGITAL_STATE_HIGH
 };
-
-Digital_InputType InputC13 =
-{
-    .PortPin = PIN_C13,
-    .Resistor = PIN_RES_NONE,
-};
-
-static Bool WatchpointTriggered = False;
-U32 GlobalVar[4] ALIGN(4) = { 0 };
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -46,13 +39,8 @@ U32 GlobalVar[4] ALIGN(4) = { 0 };
  */
 void Setup(void);
 
-void TestFunc(void* Arg);
-void TestFunc2(void* Arg);
-void DummyButtonFunc(void);
-void DummyCompHandler0(void);
-void DummyCompHandler1(void);
-void DummyCompHandler2(void);
-void DummyCompHandler3(void);
+void BlinkThreadFunc(void* Arg);
+void CommThreadFunc(void* Arg);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
@@ -64,26 +52,16 @@ int main(void)
     Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
     Crc_Crc8Init(&Crc8Cfg);
     Protocol_Init(USART2, 115200, PIN_A2, PIN_A3);
-    WatchpointComparatorsInit();
-    NVIC_SetPriority(DebugMonitor_IRQn, 0UL);
-    DebugMonitorExceptionEnable();
-    DataWatchpointSet(&GlobalVar[0], DummyCompHandler0);
-    DataWatchpointSet(&GlobalVar[1], DummyCompHandler1);
-    DataWatchpointSet(&GlobalVar[2], DummyCompHandler2);
-    DataWatchpointSet(&GlobalVar[3], DummyCompHandler3);
 
     Digital_OutputInit(&OutputA5);
-    Digital_InputInit(&InputC13);
-    Exti_GpioInit(InputC13.PortPin, DummyButtonFunc, EXTI_TRIGGER_FALLING_EDGE);
 
-    Osal_ThreadCreate(TestFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
-    Osal_ThreadCreate(TestFunc2, NULL, 1024, THREAD_PRIORITY_MEDIUM);
+    Osal_ThreadCreate(BlinkThreadFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
+    Osal_ThreadCreate(CommThreadFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
     Osal_StartScheduler();
 
     while (1)
     {
         /* Should never get here after OS scheduler is started. */
-
     }
 
     return 0;
@@ -138,49 +116,21 @@ void Setup(void)
     #endif
 }
 
-void TestFunc(void* Arg)
+void BlinkThreadFunc(void* Arg)
 {
     UNUSED(Arg);
     while (True)
     {
-        if (WatchpointTriggered) { Digital_Set(&OutputA5); }
-        else { Digital_Clear(&OutputA5); }
+        Digital_Toggle(&OutputA5);
+        Osal_Delay_ms(500UL);
     }
 }
 
-void TestFunc2(void* Arg)
+void CommThreadFunc(void* Arg)
 {
     UNUSED(Arg);
     while (True)
     {
         Protocol_Run();
     }
-}
-
-void DummyButtonFunc(void)
-{
-    static U8 ButtonCnt = 0U;
-    GlobalVar[ButtonCnt] = 0xDEADBEEFUL;
-    ButtonCnt++;
-    if (ButtonCnt > 3) { ButtonCnt = 0; }
-}
-
-void DummyCompHandler0(void)
-{
-    WatchpointTriggered = True;
-}
-
-void DummyCompHandler1(void)
-{
-    WatchpointTriggered = False;
-}
-
-void DummyCompHandler2(void)
-{
-    WatchpointTriggered = True;
-}
-
-void DummyCompHandler3(void)
-{
-    WatchpointTriggered = False;
 }
