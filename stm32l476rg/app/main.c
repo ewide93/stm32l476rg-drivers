@@ -119,10 +119,17 @@ void Setup(void)
 void BlinkThreadFunc(void* Arg)
 {
     UNUSED(Arg);
+    U32 Period_Ticks = Osal_msToTicks(10UL);
+    U32 Timekeeping = Osal_GetTickCount();
+    U8 Cnt = 0U;
     while (True)
     {
-        Digital_Toggle(&OutputA5);
-        Osal_Delay_ms(500UL);
+        if (++Cnt > 10)
+        {
+            Digital_Toggle(&OutputA5);
+            Cnt = 0U;
+        }
+        Osal_DelayUntil(&Timekeeping, Period_Ticks);
     }
 }
 
