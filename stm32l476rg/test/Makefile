@@ -16,6 +16,7 @@ DRIVERS_DIR := ../drivers
 # -------------------------------------------------------------------------------------
 TESTRUNNERS := $(UNIT_TEST_BUILD_DIR)/test_fifo.exe
 TESTRUNNERS += $(UNIT_TEST_BUILD_DIR)/test_mempool.exe
+TESTRUNNERS += $(UNIT_TEST_BUILD_DIR)/test_cobs_codec.exe
 
 # -------------------------------------------------------------------------------------
 # Native toolchain configuration.
@@ -55,6 +56,14 @@ $(UNIT_TEST_BUILD_DIR)/test_fifo.exe: test_fifo.c $(COMMON_DIR)/fifo.c $(UNITY_S
 $(UNIT_TEST_BUILD_DIR)/test_mempool.exe: test_mempool.c $(COMMON_DIR)/mempool.c $(UNITY_SRC)
 	@echo "Compiling unit test runner $(notdir $@)..."
 	@$(CC) $(CFLAGS) -Wno-unused-variable $(WFLAGS) $^ -o $@
+
+# -------------------------------------------------------------------------------------
+# Rule to build test runner for COBS codec module unit tests.
+# -------------------------------------------------------------------------------------
+$(UNIT_TEST_BUILD_DIR)/test_cobs_codec.exe: test_cobs_codec.c $(APP_DIR)/cobs_codec.c $(UNITY_SRC)
+	@echo "Compiling unit test runner $(notdir $@)..."
+	@$(CC) $(CFLAGS) -Wno-unused-variable $(WFLAGS) $^ -o $@
+
 
 # -------------------------------------------------------------------------------------
 # Rule to clean build directory.
