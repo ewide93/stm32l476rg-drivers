@@ -4,6 +4,7 @@ __pycache__
 .vscode/
 **/build/obj/
 **/build/out/
+**/build/dlls/
 **/cppcheck_cache/
 **/test/build/**
 

@@ -7,6 +7,14 @@
 #ifndef COBS_CODEC_H
 #define COBS_CODEC_H
 
+/* -------------------------------- DLL shenanigans -------------------------------- */
+
+#ifdef BUILD_DLL
+    #define DLLEXPORT __declspec(dllexport)
+#else
+    #define DLLEXPORT
+#endif
+
 /* ------------------------------- Include directives ------------------------------ */
 
 #include "typedef.h"
@@ -33,7 +41,7 @@ typedef struct
  * @param DstLen Capacity of output buffer.
  * @return Result of the encoding operation.
  */
-CobsCodec_ResultType CobsCodec_Encode(const U8* Src, U16 SrcLen, U8* Dst, U16 DstLen);
+DLLEXPORT CobsCodec_ResultType CobsCodec_Encode(const U8* Src, U16 SrcLen, U8* Dst, U16 DstLen);
 
 /**
  * @brief Decode the given data.
@@ -43,6 +51,6 @@ CobsCodec_ResultType CobsCodec_Encode(const U8* Src, U16 SrcLen, U8* Dst, U16 Ds
  * @param DstLen Capacity of output buffer.
  * @return Result of the decoding operation.
  */
-CobsCodec_ResultType CobsCodec_Decode(const U8* Src, U16 SrcLen, U8* Dst, U16 DstLen);
+DLLEXPORT CobsCodec_ResultType CobsCodec_Decode(const U8* Src, U16 SrcLen, U8* Dst, U16 DstLen);
 
 #endif /* COBS_CODEC_H */
