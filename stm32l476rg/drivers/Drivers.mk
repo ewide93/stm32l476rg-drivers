@@ -9,6 +9,7 @@ SRC += $(DRIVERS_PATH)/uart.c
 SRC += $(DRIVERS_PATH)/crc.c
 SRC += $(DRIVERS_PATH)/exti.c
 SRC += $(DRIVERS_PATH)/core_debug.c
+SRC += $(DRIVERS_PATH)/dma.c
 
 # Include paths
 INC += $(DRIVERS_PATH)

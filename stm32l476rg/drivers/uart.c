@@ -152,7 +152,6 @@ static inline Pin_AlternateFunctionEnum Uart_InstanceToAltFunc(const USART_TypeD
     }
 }
 
-
 /**
  * @brief Determine the IRQ number matching the given UART
  *        peripheral instance.
@@ -169,7 +168,6 @@ static IRQn_Type Uart_InstanceToIrqNum(const USART_TypeDef* Uart)
     else if (Uart == LPUART1) { return LPUART1_IRQn; }
     else                      { return INVALID_IRQn; }
 }
-
 
 /**
  * @brief Determine the local handle to use for the given
@@ -207,7 +205,6 @@ static Uart_HandleType Uart_InstanceToHandle(const USART_TypeDef* Uart)
     return (struct Uart_OpaqueHandleType*)NULL;
 }
 
-
 /**
  * @brief Set the word length for the given UART peripheral.
  * @param Uart Pointer to USART peripheral structure.
@@ -220,7 +217,6 @@ static inline void Uart_SetWordLength(USART_TypeDef* Uart, Uart_WordLengthEnum W
                    ((WordLength & 0x1U) << USART_CR1_M0_Pos) );
 }
 
-
 /**
  * @brief Set the oversampling mode of the given UART peripheral.
  * @param Uart Pointer to USART peripheral structure.
@@ -231,7 +227,6 @@ static inline void Uart_SetOversampling(USART_TypeDef* Uart, Uart_OversamplingEn
     Uart->CR1 &= ~USART_CR1_OVER8;
     Uart->CR1 |= (Oversampling << USART_CR1_OVER8_Pos);
 }
-
 
 /**
  * @brief Set the parity for the given UART peripheral.
@@ -248,7 +243,6 @@ static inline void Uart_SetParity(USART_TypeDef* Uart, Uart_ParityEnum Parity)
     }
 }
 
-
 /**
  * @brief Set the bit sampling method for the UART reciever.
  * @param Uart Pointer to USART peripheral structure.
@@ -260,7 +254,6 @@ static inline void Uart_SetSamplingMethod(USART_TypeDef* Uart, Uart_SamplingMeth
     Uart->CR3 |= (SamplingMethod << USART_CR3_ONEBIT_Pos);
 }
 
-
 /**
  * @brief Set the number of stop bits for the given UART peripheral.
  * @param Uart Pointer to USART peripheral structure.
@@ -271,7 +264,6 @@ static inline void Uart_SetStopBits(USART_TypeDef* Uart, Uart_StopBitsEnum StopB
     Uart->CR2 &= ~USART_CR2_STOP;
     Uart->CR2 |= (StopBits << USART_CR2_STOP_Pos);
 }
-
 
 /**
  * @brief Configure the baud rate for the given UART peripheral.
@@ -290,7 +282,6 @@ static inline void Uart_SetBaudRate(USART_TypeDef* Uart, U32 BaudRate, Uart_Over
     if (ClkDiv <= UINT16_MAX) { Uart->BRR = (U16)ClkDiv; }
 }
 
-
 /**
  * @brief Await the transmission complete flag of the given UART peripheral.
  * @param Uart Pointer to USART peripheral structure.
@@ -300,11 +291,90 @@ static inline void Uart_AwaitTxComplete(const USART_TypeDef* Uart)
     while ( !(Uart->ISR & USART_ISR_TC) ) { __NOP(); }
 }
 
-
 /**
  * @brief Enable the transmit data register empty interrupt
  *        for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
  */
+static inline void Uart_TxInterruptEnable(USART_TypeDef* Uart)
+{
+    Uart->CR1 |= USART_CR1_TXEIE;
+}
+
+/**
+ * @brief Disable the transmit data register empty interrupt
+ *        for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_TxInterruptDisable(USART_TypeDef* Uart)
+{
+    Uart->CR1 &= ~USART_CR1_TXEIE;
+}
+
+/**
+ * @brief Enable the reciever data register not empty interrupt
+ *        for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_RxInterruptEnable(USART_TypeDef* Uart)
+{
+    Uart->CR1 |= USART_CR1_RXNEIE;
+}
+
+/**
+ * @brief Disable the reciever data register not empty interrupt
+ *        for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_RxInterruptDisable(USART_TypeDef* Uart)
+{
+    Uart->CR1 &= ~USART_CR1_RXNEIE;
+}
+
+/**
+ * @brief Enable DMA transmission mode for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_DmaTxEnable(USART_TypeDef* Uart)
+{
+    Uart->CR3 |= USART_CR3_DMAT;
+}
+
+/**
+ * @brief Disable DMA transmission mode for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_DmaTxDisable(USART_TypeDef* Uart)
+{
+    Uart->CR3 &= ~USART_CR3_DMAT;
+}
+
+/**
+ * @brief Enable DMA reception mode for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_DmaRxEnable(USART_TypeDef* Uart)
+{
+    Uart->CR3 |= USART_CR3_DMAR;
+}
+
+/**
+ * @brief Disable DMA reception mode for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_DmaRxDisable(USART_TypeDef* Uart)
+{
+    Uart->CR3 &= ~USART_CR3_DMAR;
+}
+
+/**
+ * @brief Clear the transmission complete flag for the given UART peripheral.
+ * @param Uart Pointer to USART peripheral structure.
+ */
+static inline void Uart_ClearTxCompleteFlag(USART_TypeDef* Uart)
+{
+    Uart->ICR |= USART_ICR_TCCF;
+}
 
 /* -------------------------- Public function definitions -------------------------- */
 
@@ -313,36 +383,30 @@ void Uart_TxEnable(Uart_HandleType Uart)
     Uart->Instance->CR1 |= USART_CR1_TE;
 }
 
-
 void Uart_TxDisable(Uart_HandleType Uart)
 {
     Uart->Instance->CR1 &= ~USART_CR1_TE;
 }
-
 
 void Uart_RxEnable(Uart_HandleType Uart)
 {
     Uart->Instance->CR1 |= USART_CR1_RE;
 }
 
-
 void Uart_RxDisable(Uart_HandleType Uart)
 {
     Uart->Instance->CR1 &= ~USART_CR1_RE;
 }
-
 
 void Uart_Enable(Uart_HandleType Uart)
 {
     Uart->Instance->CR1 |= USART_CR1_UE;
 }
 
-
 void Uart_Disable(Uart_HandleType Uart)
 {
     Uart->Instance->CR1 &= ~USART_CR1_UE;
 }
-
 
 Uart_HandleType Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
 {
@@ -364,23 +428,19 @@ Uart_HandleType Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
     Fifo_Init(TempHandle->TxFifo, TempHandle->TxBuffer, UART_TX_BUFFER_SIZE);
     Fifo_Init(TempHandle->RxFifo, TempHandle->RxBuffer, UART_RX_BUFFER_SIZE);
 
-    /* UART peripheral interrupt configuration */
-    Uart->CR1 |= USART_CR1_RXNEIE;
-
     /* NVIC configuration */
+    Uart_RxInterruptEnable(Uart);
     const IRQn_Type Irq = Uart_InstanceToIrqNum(Uart);
     NVIC_SetPriority(Irq, UART_IRQ_PRIO);
     NVIC_EnableIRQ(Irq);
     return TempHandle;
 }
 
-
 void Uart_TransmitByteBlocking(Uart_HandleType Uart, U8 Data)
 {
     Uart_AwaitTxComplete(Uart->Instance);
     Uart->Instance->TDR = Data;
 }
-
 
 void Uart_TransmitStringBlocking(Uart_HandleType Uart, const Char* Data)
 {
@@ -390,7 +450,6 @@ void Uart_TransmitStringBlocking(Uart_HandleType Uart, const Char* Data)
         if (*DataPtr == '\n') { Uart_TransmitByteBlocking(Uart, '\r'); }
     }
 }
-
 
 Bool Uart_TransmitChar(Uart_HandleType Uart, Char Data)
 {
@@ -406,13 +465,12 @@ Bool Uart_TransmitChar(Uart_HandleType Uart, Char Data)
         CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->TxFifo, &TxData);
         CRITICAL_SECTION_EXIT;
-        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart_TxInterruptEnable(Uart->Instance);
         Uart->Instance->TDR = TxData;
         Uart->TxBusy = True;
     }
     return True;
 }
-
 
 Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
 {
@@ -431,13 +489,12 @@ Bool Uart_TransmitString(Uart_HandleType Uart, const Char* Data, U8 Length)
         CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->TxFifo, &TxData);
         CRITICAL_SECTION_EXIT;
-        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart_TxInterruptEnable(Uart->Instance);
         Uart->Instance->TDR = TxData;
         Uart->TxBusy = True;
     }
     return True;
 }
-
 
 Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData)
 {
@@ -448,7 +505,6 @@ Bool Uart_RecieveChar(Uart_HandleType Uart, Char* RxData)
     CRITICAL_SECTION_EXIT;
     return True;
 }
-
 
 Bool Uart_Recieve(Uart_HandleType Uart, U8* RxData, U8 Length)
 {
@@ -480,13 +536,12 @@ Bool Uart_Transmit(Uart_HandleType Uart, const U8* Data, U8 Length)
         CRITICAL_SECTION_ENTER;
         Fifo_ReadByte(Uart->TxFifo, &TxData);
         CRITICAL_SECTION_EXIT;
-        Uart->Instance->CR1 |= USART_CR1_TXEIE;
+        Uart_TxInterruptEnable(Uart->Instance);
         Uart->Instance->TDR = TxData;
         Uart->TxBusy = True;
     }
     return True;
 }
-
 
 void Uart_RxBufferClear(Uart_HandleType Uart)
 {
@@ -504,7 +559,6 @@ U8 Uart_GetNofOutputBufferBytes(Uart_HandleType Uart)
 {
     return Uart->TxFifo->NofItems;
 }
-
 
 /* ------------------------------- Interrupt handlers ------------------------------ */
 
@@ -544,7 +598,6 @@ void USART1_IRQHandler(void)
 }
 #endif /* USART1_ENABLE */
 
-
 /**
  * @brief Interrupt handler for USART2.
  */
@@ -575,12 +628,11 @@ void USART2_IRQHandler(void)
         else
         {
             Usart2Handle.TxBusy = False;
-            USART2->CR1 &= ~USART_CR1_TXEIE;
+            Uart_TxInterruptDisable(USART2);
         }
     }
 }
 #endif /* USART2_ENABLE */
-
 
 /**
  * @brief Interrupt handler for USART3.
@@ -618,7 +670,6 @@ void USART3_IRQHandler(void)
 }
 #endif /* USART3_ENABLE */
 
-
 /**
  * @brief Interrupt handler for UART4.
  */
@@ -655,7 +706,6 @@ void UART4_IRQHandler(void)
 }
 #endif /* UART4_ENABLE */
 
-
 /**
  * @brief Interrupt handler for UART5.
  */
@@ -691,7 +741,6 @@ void UART5_IRQHandler(void)
     }
 }
 #endif /* UART5_ENABLE */
-
 
 /**
  * @brief Interrupt handler for LPUART1.
