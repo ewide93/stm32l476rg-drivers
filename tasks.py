@@ -4,7 +4,7 @@ from invoke.tasks import task
 from invoke.context import Context
 from pathlib import Path
 from scripts.binutils import Binutils
-from typing import Any
+from typing import Optional
 
 
 PATHS = {
@@ -62,11 +62,11 @@ def size(ctx: Context) -> None:
 
 
 @task()
-def nm(ctx: Context) -> None:
+def nm(ctx: Context, file: Optional[str] = None) -> None:
     """List the symbols in the firmware image."""
     output = ctx.run(f"{Binutils.COMMANDS["nm"]} {PATHS['elf']}", hide=True)
     if output is not None:
-        print(Binutils.parse_nm(output.stdout))
+        print(Binutils.parse_nm(output.stdout, file))
 
 
 @task()
@@ -127,7 +127,3 @@ def test(ctx: Context) -> None:
     with ctx.cd(PATHS["test_dir"]):
         ctx.run("make clean")
     sys.exit(return_code)
-
-@task(aliases=["wtf"])
-def hmm(ctx: Context, a: Any = False) -> None:
-    print(f"Running hmm task with a={a}")

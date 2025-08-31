@@ -1,15 +1,17 @@
 import re
-from typing import NamedTuple
+from typing import NamedTuple, Optional
+
+
+class Symbol(NamedTuple):
+    name: str
+    address: int
+    size: int
+    symbol_type: str
+    src_file: str
+    line_num: int
 
 
 class Binutils:
-    class Symbol(NamedTuple):
-        name: str
-        address: int
-        size: int
-        symbol_type: str
-        src_file: str
-        line_num: int
 
     COMMANDS = {
         "size": "arm-none-eabi-size",
@@ -52,9 +54,9 @@ class Binutils:
                 return "Unknown"
 
     @classmethod
-    def parse_nm(cls, stdout: str) -> str:
+    def parse_nm(cls, stdout: str, file: Optional[str]) -> str:
         """Parse output from arm-none-eabi-nm utility."""
-        symbols = []
+        symbols: list[Symbol] = []
         for line in stdout.removesuffix("\n").split("\n"):
             try:
                 address, size, symbol_type, name, path_and_line_num = line.split()
@@ -64,7 +66,7 @@ class Binutils:
                 if match:
                     src_file = match.group(1)
                     symbols.append(
-                        cls.Symbol(
+                        Symbol(
                             name,
                             int(address, 16),
                             int(size, 16),
@@ -78,6 +80,8 @@ class Binutils:
         src_files = []
         parsed_output = ""
         for symbol in sorted(symbols, key=lambda sym: sym.src_file):
+            if file is not None and symbol.src_file != file:
+                continue
             if symbol.src_file not in src_files:
                 src_files.append(symbol.src_file)
                 parsed_output += (
@@ -88,7 +92,11 @@ class Binutils:
             parsed_output += f"Size: {symbol.size}".ljust(10, " ")
             parsed_output += f"Line: {symbol.line_num}".ljust(10, " ")
             parsed_output += f"Type: {cls.symbol_type_to_str(symbol)}\n"
-        return parsed_output
+
+        if file is not None and parsed_output == "":
+            return f"No symbol data found for file: {file}"
+        else:
+            return parsed_output
 
     @staticmethod
     def parse_size(stdout: str) -> tuple:
