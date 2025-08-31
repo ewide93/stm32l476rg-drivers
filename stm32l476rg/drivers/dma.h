@@ -62,6 +62,16 @@ typedef enum
 } Dma_TransferSizeEnum;
 
 /**
+ * @brief Enumeration of DMA transfer directions.
+ */
+typedef enum
+{
+    DMA_TRANSFER_DIR_READ_FROM_PERIPHERAL = 0x0U,
+    DMA_TRANSFER_DIR_READ_FROM_MEMORY = 0x1U,
+    DMA_TRANSFER_DIR_ENUM_LIMIT
+} Dma_TransferDirectionEnum;
+
+/**
  * @brief Opaque DMA handle type.
  */
 typedef struct Dma_OpaqueHandleType* Dma_HandleType;
@@ -90,5 +100,24 @@ Dma_HandleType Dma_GetHandle(Dma_InstanceEnum Instance, Dma_ChannelEnum Channel)
  * @return True = available, False = not available.
  */
 Bool Dma_ChannelIsAvailable(Dma_HandleType Handle);
+
+/**
+ * @brief Read the "number of data to transfer" register of the given DMA channel.
+ * @param Handle DMA peripheral handle.
+ * @return Remaining transfers until the configured number of transfers is reached.
+ */
+U16 Dma_GetTransferCnt(Dma_HandleType Handle);
+
+/**
+ * @brief Enable the given DMA channel.
+ * @param Handle DMA peripheral handle.
+ */
+void Dma_ChannelEnable(Dma_HandleType Handle);
+
+/**
+ * @brief Disable the given DMA channel.
+ * @param Handle DMA peripheral handle.
+ */
+void Dma_ChannelDisable(Dma_HandleType Handle);
 
 #endif /* DMA_H */

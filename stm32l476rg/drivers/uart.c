@@ -29,7 +29,7 @@ struct Uart_OpaqueHandleType
 
 /* --------------------------------- Local variables ------------------------------- */
 
-#if defined(USART1_ENABLE)
+#if defined(USART1_ENABLE) && (USART1_ENABLE == 1U)
 static U8 Usart1TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Usart1RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Usart1TxFifo = { 0 };
@@ -46,7 +46,7 @@ static struct Uart_OpaqueHandleType Usart1Handle =
 };
 #endif /* USART1_ENABLE */
 
-#if defined(USART2_ENABLE)
+#if defined(USART2_ENABLE) && (USART2_ENABLE == 1U)
 static U8 Usart2TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Usart2RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Usart2TxFifo = { 0 };
@@ -63,7 +63,7 @@ static struct Uart_OpaqueHandleType Usart2Handle =
 };
 #endif /* USART2_ENABLE */
 
-#if defined(USART3_ENABLE)
+#if defined(USART3_ENABLE) && (USART3_ENALBE == 1U)
 static U8 Usart3TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Usart3RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Usart3TxFifo = { 0 };
@@ -80,7 +80,7 @@ static struct Uart_OpaqueHandleType Usart3Handle =
 };
 #endif /* USART3_ENABLE */
 
-#if defined(UART4_ENABLE)
+#if defined(UART4_ENABLE) && (UART4_ENABLE == 1U)
 static U8 Uart4TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Uart4RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Uart4TxFifo = { 0 };
@@ -97,7 +97,7 @@ static struct Uart_OpaqueHandleType Uart4Handle =
 };
 #endif /* UART4_ENABLE */
 
-#if defined(UART5_ENABLE)
+#if defined(UART5_ENABLE) && (UART5_ENABLE == 1U)
 static U8 Uart5TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Uart5RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Uart5TxFifo = { 0 };
@@ -114,7 +114,7 @@ static struct Uart_OpaqueHandleType Uart5Handle =
 };
 #endif /* UART5_ENABLE */
 
-#if defined(LPUART1_ENABLE)
+#if defined (LPUART1_ENABLE) && (LPUART1_ENABLE == 1U)
 static U8 Lpuart1TxBuffer[UART_TX_BUFFER_SIZE] = { 0 };
 static U8 Lpuart1RxBuffer[UART_RX_BUFFER_SIZE] = { 0 };
 static FifoType Lpuart1TxFifo = { 0 };
@@ -177,27 +177,27 @@ static IRQn_Type Uart_InstanceToIrqNum(const USART_TypeDef* Uart)
  */
 static Uart_HandleType Uart_InstanceToHandle(const USART_TypeDef* Uart)
 {
-    #if defined(USART1_ENABLE)
+    #if defined(USART1_ENABLE) && (USART1_ENALBE == 1U)
     if (Uart == USART1) { return &Usart1Handle; }
     #endif /* USART1_ENABLE */
 
-    #if defined(USART2_ENABLE)
+    #if defined(USART2_ENABLE) && (USART2_ENABLE == 1U)
     if (Uart == USART2) { return &Usart2Handle; }
     #endif /* USART2_ENABLE */
 
-    #if defined(USART3_ENABLE)
+    #if defined(USART3_ENABLE) && (USART3_ENALBE == 1U)
     if (Uart == USART3) { return &Usart3Handle; }
     #endif /* USART#_ENABLE */
 
-    #if defined(UART4_ENABLE)
+    #if defined(UART4_ENABLE) && (UART4_ENABLE == 1U)
     if (Uart == UART4) { return &Uart4Handle; }
     #endif /* UART4_ENABLE */
 
-    #if defined(UART5_ENABLE)
+    #if defined(UART5_ENABLE) && (UART5_ENABLE == 1U)
     if (Uart == UART5) { return &Uart5Handle; }
     #endif /* UART5_ENABLE */
 
-    #if defined(LPUART1_ENABLE)
+    #if defined(LPUART1_ENABLE) && (LPUART1_ENABLE == 1U)
     if (Uart == LPUART1) { return &Lpuart1Handle; }
     #endif /* LPUART1_ENABLE */
 
@@ -408,6 +408,20 @@ void Uart_Disable(Uart_HandleType Uart)
     Uart->Instance->CR1 &= ~USART_CR1_UE;
 }
 
+void Uart_CharacterMatchInterruptEnable(Uart_HandleType Uart, U8 MatchByte)
+{
+    /* Clear interrupt flag, configure match byte and then enable interrupt. */
+    Uart->Instance->ICR |= USART_ICR_CMCF;
+    Uart->Instance->CR2 &= ~USART_CR2_ADD;
+    Uart->Instance->CR2 |= (U32)(MatchByte << USART_CR2_ADD_Pos);
+    Uart->Instance->CR1 |= USART_CR1_CMIE;
+}
+
+void Uart_CharacterMatchInterruptDisable(Uart_HandleType Uart)
+{
+    Uart->Instance->CR1 &= ~USART_CR1_CMIE;
+}
+
 Uart_HandleType Uart_Init(USART_TypeDef* Uart, const Uart_ConfigType* Config)
 {
     const Pin_AlternateFunctionEnum AltFunc = Uart_InstanceToAltFunc(Uart);
@@ -562,10 +576,19 @@ U8 Uart_GetNofOutputBufferBytes(Uart_HandleType Uart)
 
 /* ------------------------------- Interrupt handlers ------------------------------ */
 
+void Uart_InterruptHandler(Uart_HandleType Uart)
+{
+    /**
+     * @todo Figure clean way to selec interrupt handler based on
+     *       UART config (DMA vs non-DMA etc.)
+     */
+    UNUSED(Uart);
+}
+
 /**
  * @brief Interrupt handler for USART1.
  */
-#if defined(USART1_ENABLE)
+#if defined(USART1_ENABLE) && (USART1_ENABLE == 1U)
 void USART1_IRQHandler(void)
 {
     const U32 TempIsr = USART1->ISR;
@@ -601,7 +624,7 @@ void USART1_IRQHandler(void)
 /**
  * @brief Interrupt handler for USART2.
  */
-#if defined(USART2_ENABLE)
+#if defined(USART2_ENABLE) && (USART2_ENABLE == 1U)
 void USART2_IRQHandler(void)
 {
     const U32 TempIsr = USART2->ISR;
@@ -631,13 +654,26 @@ void USART2_IRQHandler(void)
             Uart_TxInterruptDisable(USART2);
         }
     }
+
+    /* Interrupt triggered by Rx data match */
+    if ( TempIsr & USART_ISR_CMF )
+    {
+        /* Wait for DMA to finish ongoing transfers. */
+        while (USART2->ISR & USART_ISR_RXNE) { __NOP(); }
+        /* Get status data needed from DMA peripheral. */
+        /* Disable the DMA channel. */
+        /* Notify upper layers of the new message. */
+        /* Reconfigure DMA channel with a new buffer. */
+        /* Re-enable DMA channel. */
+    }
+
 }
 #endif /* USART2_ENABLE */
 
 /**
  * @brief Interrupt handler for USART3.
  */
-#if defined(USART3_ENABLE)
+#if defined(USART3_ENABLE) && (USART3_ENABLE == 1U)
 void USART3_IRQHandler(void)
 {
     const U32 TempIsr = USART3->ISR;
@@ -673,7 +709,7 @@ void USART3_IRQHandler(void)
 /**
  * @brief Interrupt handler for UART4.
  */
-#if defined(UART4_ENABLE)
+#if defined(UART4_ENABLE) && (UART4_ENABLE == 1U)
 void UART4_IRQHandler(void)
 {
     const U32 TempIsr = UART4->ISR;
@@ -709,7 +745,7 @@ void UART4_IRQHandler(void)
 /**
  * @brief Interrupt handler for UART5.
  */
-#if defined(UART5_ENABLE)
+#if defined(UART5_ENABLE) && (UART5_ENABLE == 1U)
 void UART5_IRQHandler(void)
 {
     const U32 TempIsr = UART5->ISR;
@@ -745,7 +781,7 @@ void UART5_IRQHandler(void)
 /**
  * @brief Interrupt handler for LPUART1.
  */
-#if defined(LPUART1_ENABLE)
+#if defined(LPUART1_ENABLE) && (LPUART1_ENABLE == 1U)
 void LPUART1_IRQHandler(void)
 {
     const U32 TempIsr = LPUART1->ISR;

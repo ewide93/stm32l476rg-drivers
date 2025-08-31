@@ -22,12 +22,12 @@
  * @note In order to save RAM only USART peripherals for which these defines
  *       are set are usable.
  */
-// #define USART1_ENABLE
-#define USART2_ENABLE
-// #define USART3_ENABLE
-// #define UART4_ENABLE
-// #define UART5_ENABLE
-// #define LPUART1_ENABLE
+#define USART1_ENABLE   (0U)
+#define USART2_ENABLE   (1U)
+#define USART3_ENABLE   (0U)
+#define UART4_ENABLE    (0U)
+#define UART5_ENABLE    (0U)
+#define LPUART1_ENABLE  (0U)
 
 /*  -------------------------- Structures & enumerations --------------------------- */
 
@@ -232,14 +232,29 @@ void Uart_RxBufferClear(Uart_HandleType Uart);
 
 /**
  * @brief Get the number of bytes in the input buffer of the given UART peripheral.
+ * @param Uart UART peripheral handle.
  * @return Number of unread bytes in the input buffer.
  */
 U8 Uart_GetNofInputBufferBytes(Uart_HandleType Uart);
 
 /**
  * @brief Get the number of bytes in the output buffer of the given UART peripheral.
+ * @param Uart UART peripheral handle.
  * @return Number of unread bytes in the output buffer.
  */
 U8 Uart_GetNofOutputBufferBytes(Uart_HandleType Uart);
+
+/**
+ * @brief Enable the character match interrupt for the given UART peripheral.
+ * @param Uart UART peripheral handle.
+ * @param MatchByte Byte to match against.
+ */
+void Uart_CharacterMatchInterruptEnable(Uart_HandleType Uart, U8 MatchByte);
+
+/**
+ * @brief Disable the character match interrupt for the given UART peripheral.
+ * @param Uart UART peripheral handle.
+ */
+void Uart_CharacterMatchInterruptDisable(Uart_HandleType Uart);
 
 #endif /* UART_H */
