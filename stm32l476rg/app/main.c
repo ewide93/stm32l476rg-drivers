@@ -124,7 +124,7 @@ void BlinkThreadFunc(void* Arg)
     U8 Cnt = 0U;
     while (True)
     {
-        if (++Cnt > 10)
+        if (++Cnt > 50)
         {
             Digital_Toggle(&OutputA5);
             Cnt = 0U;

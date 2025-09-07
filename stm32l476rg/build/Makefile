@@ -18,6 +18,7 @@ ROOT := ..
 OBJ_DIR := obj
 OUT_DIR := out
 LINKER_SCRIPT := $(TARGET).ld
+CMSIS_PACK := C:/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
 
 # -------------------------------------------------------------------------------------
 # Gather & arrange variables for build system
@@ -161,8 +162,10 @@ all: $(OUT_DIR)/$(TARGET).elf
 # -------------------------------------------------------------------------------------
 # Rule to flash the microcontroller using OpenOCD
 # -------------------------------------------------------------------------------------
+.PHONY: flash
 flash: $(OUT_DIR)/$(TARGET).elf
-	@openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
+# 	@openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
+	@pyocd flash --pack=$(CMSIS_PACK) $^
 
 # -------------------------------------------------------------------------------------
 # Rule to produce .elf file

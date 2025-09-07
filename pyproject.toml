@@ -1,0 +1,11 @@
+[project]
+name = "stm32l476rg-drivers"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "invoke>=2.2.0",
+    "pyocd>=0.38.0",
+    "ruff>=0.12.12",
+]
