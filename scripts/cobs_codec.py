@@ -1,5 +1,9 @@
 import ctypes
+import logging
 from pathlib import Path
+
+
+logger = logging.getLogger(__name__)
 
 
 class Result(ctypes.Structure):
@@ -39,7 +43,7 @@ class CobsCodec:
         ]
         self._dll.CobsCodec_Decode.restype = Result
         self._max_buffer_size = max_buffer_size
-        self._debug = debug
+        logging.basicConfig(level=logging.DEBUG if debug else logging.INFO)
 
     def encode(self, data: bytearray) -> bytearray:
         src = (ctypes.c_uint8 * len(data)).from_buffer(data)
@@ -53,9 +57,8 @@ class CobsCodec:
 
         if not result.valid:
             raise CobsEncodeError from None
-        if self._debug:
-            print(f"Raw data: {[hex(byte) for byte in data]}")
-            print(f"Encoded data: {[hex(byte) for byte in encode_buffer[:result.length]]}")
+        logger.debug(f"Raw data: {[hex(byte) for byte in data]}")
+        logger.debug(f"Encoded data: {[hex(byte) for byte in encode_buffer[:result.length]]}")
         return bytearray(encode_buffer[:result.length])
 
     def decode(self, data: bytearray) -> bytearray:
@@ -70,9 +73,8 @@ class CobsCodec:
 
         if not result.valid:
             raise CobsDecodeError from None
-        if self._debug:
-            print(f"Encoded data: {[hex(byte) for byte in data]}")
-            print(f"Decoded data: {[hex(byte) for byte in decode_buffer[:result.length]]}")
+        logger.debug(f"Encoded data: {[hex(byte) for byte in data]}")
+        logger.debug(f"Decoded data: {[hex(byte) for byte in decode_buffer[:result.length]]}")
 
         return bytearray(decode_buffer[:result.length])
 

@@ -14,6 +14,10 @@ MAKEFLAGS += --warn-undefined-variables
 # Paths to navigate project structure
 # -------------------------------------------------------------------------------------
 TARGET := STM32L476RG
+ELF_FILE := $(TARGET).elf
+MOT_FILE := $(TARGET).mot
+BIN_FILE := $(TARGET).bin
+HEX_FILE := $(TARGET).hex
 ROOT := ..
 OBJ_DIR := obj
 OUT_DIR := out
@@ -160,11 +164,38 @@ LINT_IGNORE := -i$(EXTERNAL_PATH)/FreeRTOS
 all: $(OUT_DIR)/$(TARGET).elf
 
 # -------------------------------------------------------------------------------------
+# Rule to convert .elf to Motorola S-record (.mot)
+# -------------------------------------------------------------------------------------
+$(OUT_DIR)/$(MOT_FILE): $(OUT_DIR)/$(ELF_FILE)
+	@echo "Converting $(notdir $^) to Motorola S-record (.mot)"
+	@$(PREFIX)objcopy -I elf32-littlearm -O srec $^ $@
+
+# -------------------------------------------------------------------------------------
+# Rule to convert .elf to raw binary format (.bin)
+# -------------------------------------------------------------------------------------
+$(OUT_DIR)/$(BIN_FILE): $(OUT_DIR)/$(ELF_FILE)
+	@echo "Converting $(notdir $^) to raw binary (.bin)"
+	@$(PREFIX)objcopy -I elf32-littlearm -O binary $^ $@
+
+# -------------------------------------------------------------------------------------
+# Rule to convert .elf to Intel hex format (.hex)
+# -------------------------------------------------------------------------------------
+$(OUT_DIR)/$(HEX_FILE): $(OUT_DIR)/$(ELF_FILE)
+	@echo "Converting $(notdir $^) to Intel hex (.hex)"
+	@$(PREFIX)objcopy -I elf32-littlearm -O ihex $^ $@
+
+# -------------------------------------------------------------------------------------
+# Rule to convert .elf to various other file formats
+# -------------------------------------------------------------------------------------
+.PHONY: convert
+convert: $(OUT_DIR)/$(MOT_FILE) $(OUT_DIR)/$(BIN_FILE) $(OUT_DIR)/$(HEX_FILE)
+	@echo "Conversions completed!"
+
+# -------------------------------------------------------------------------------------
 # Rule to flash the microcontroller using OpenOCD
 # -------------------------------------------------------------------------------------
 .PHONY: flash
-flash: $(OUT_DIR)/$(TARGET).elf
-# 	@openocd -f interface/stlink.cfg -f target/stm32l4x.cfg -c "program $^ verify reset exit"
+flash: $(OUT_DIR)/$(ELF_FILE)
 	@pyocd flash --pack=$(CMSIS_PACK) $^
 
 # -------------------------------------------------------------------------------------
@@ -192,6 +223,9 @@ clean:
 	@rm -rf $(OBJ_DIR)/*.su
 	@rm -rf $(OUT_DIR)/*.map
 	@rm -rf $(OUT_DIR)/*.elf
+	@rm -rf $(OUT_DIR)/*.mot
+	@rm -rf $(OUT_DIR)/*.bin
+	@rm -rf $(OUT_DIR)/*.hex
 
 # -------------------------------------------------------------------------------------
 # Rule for running linter

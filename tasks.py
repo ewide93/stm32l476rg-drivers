@@ -29,6 +29,7 @@ def build(ctx: Context) -> None:
     """Build the firmware image."""
     with ctx.cd(PATHS["build_dir"]):
         ctx.run("make")
+        ctx.run("make convert")
 
 
 @task()

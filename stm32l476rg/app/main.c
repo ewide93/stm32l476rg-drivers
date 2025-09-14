@@ -30,6 +30,7 @@ Digital_OutputType OutputA5 =
     .Speed = PIN_SPEED_LOW,
     .InitVal = DIGITAL_STATE_HIGH
 };
+static volatile U32 DummyCnt = 10UL;
 
 /* -------------------------- Local function declarations -------------------------- */
 
@@ -122,13 +123,17 @@ void BlinkThreadFunc(void* Arg)
     U32 Period_Ticks = Osal_msToTicks(10UL);
     U32 Timekeeping = Osal_GetTickCount();
     U8 Cnt = 0U;
+    U8 ToggleCnt = 0U;
     while (True)
     {
         if (++Cnt > 50)
         {
             Digital_Toggle(&OutputA5);
             Cnt = 0U;
+            ToggleCnt++;
+            if (ToggleCnt >= 10U) { __BKPT(0); }
         }
+        DummyCnt++;
         Osal_DelayUntil(&Timekeeping, Period_Ticks);
     }
 }
