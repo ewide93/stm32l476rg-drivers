@@ -63,6 +63,7 @@ CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -fstack-usage
 CFLAGS += -fno-builtin
+CFLAGS += -fanalyzer
 CFLAGS += -MMD -MP
 CFLAGS += -c
 CFLAGS += -std=c11
