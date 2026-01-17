@@ -1,5 +1,6 @@
 import re
 from typing import NamedTuple, Optional
+from pathlib import Path
 
 
 class Symbol(NamedTuple):
@@ -60,7 +61,7 @@ class Binutils:
         for line in stdout.removesuffix("\n").split("\n"):
             try:
                 address, size, symbol_type, name, path_and_line_num = line.split()
-                _, file_path, line_num = path_and_line_num.split(":")
+                file_path, line_num = path_and_line_num.split(":")
                 regex = re.compile(r"^.+\/([a-zA-Z_]+.c)$")
                 match = regex.match(file_path)
                 if match:

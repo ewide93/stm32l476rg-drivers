@@ -9,6 +9,7 @@ endif
 MAKEFLAGS += -j$(NUM_CORES)
 MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --warn-undefined-variables
+OS := $(shell uname)
 
 # -------------------------------------------------------------------------------------
 # Paths to navigate project structure
@@ -22,7 +23,11 @@ ROOT := ..
 OBJ_DIR := obj
 OUT_DIR := out
 LINKER_SCRIPT := $(TARGET).ld
-CMSIS_PACK := C:/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
+ifeq ($(OS), Linux)
+	CMSIS_PACK := ~/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
+else
+	CMSIS_PACK := C:/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
+endif
 
 # -------------------------------------------------------------------------------------
 # Gather & arrange variables for build system
@@ -109,7 +114,11 @@ LDFLAGS += $(addprefix -I,$(INC))
 # Linter options
 LINTER := cppcheck
 LINTER_CACHE_DIR = cppcheck_cache
-LINT_ARM_CFG := "C:/Program Files/Cppcheck/platforms/arm32-wchar_t4.xml"
+ifeq ($(OS), Linux)
+	LINT_ARM_CFG := "/usr/lib/x86_64-linux-gnu/cppcheck/platforms/arm32-wchar_t4.xml"
+else
+	LINT_ARM_CFG := "C:/Program Files/Cppcheck/platforms/arm32-wchar_t4.xml"
+endif
 LINTFLAGS := --enable=all
 LINTFLAGS += --force
 LINTFLAGS += --quiet
@@ -193,11 +202,11 @@ convert: $(OUT_DIR)/$(MOT_FILE) $(OUT_DIR)/$(BIN_FILE) $(OUT_DIR)/$(HEX_FILE)
 	@echo "Conversions completed!"
 
 # -------------------------------------------------------------------------------------
-# Rule to flash the microcontroller using OpenOCD
+# Rule to flash the microcontroller using pyOCD
 # -------------------------------------------------------------------------------------
 .PHONY: flash
 flash: $(OUT_DIR)/$(ELF_FILE)
-	@pyocd flash --pack=$(CMSIS_PACK) $^
+	@pyocd flash $^
 
 # -------------------------------------------------------------------------------------
 # Rule to produce .elf file
