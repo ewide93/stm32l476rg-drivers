@@ -9,6 +9,7 @@
 #include "msg_handler.h"
 #include "crc.h"
 #include "osal.h"
+#include "watchdog.h"
 
 /*  ----------------- Structures, enumerations & type definitions ------------------ */
 
@@ -44,9 +45,17 @@ void MsgHandler_ConstructCrcErrorResponse(Protocol_MessageType* TxMsg);
 void MsgHandler_ConstructMsgIdErrorResponse(Protocol_MessageType* TxMsg);
 
 /**
- * @brief Handler for message with ID: 0x00. Get the ms tick counter.
+ * @brief Handler for message with ID: 0x00. 
+ *        Get the current value of the RTOS tick counter &
+ *        the configured number of ticks per second.
  */
 void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg);
+
+/**
+ * @brief Handler for message with ID: 0x01. 
+ *        WIP: Return watchdog stuff, currently only reads the MCU reset reason.
+ */
+void MsgHandler_0x01(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg);
 
 /* --------------------------------- Local variables ------------------------------- */
 
@@ -55,7 +64,7 @@ void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* Tx
  */
 static const MessageHandler MsgHandlerTable[] =
 {
-    MsgHandler_0x00,
+    MsgHandler_0x00, MsgHandler_0x01
 };
 static const U8 NofMsgHandlers = (U8)(sizeof(MsgHandlerTable) / sizeof(MsgHandlerTable[0]));
 
@@ -96,20 +105,27 @@ void MsgHandler_ConstructMsgIdErrorResponse(Protocol_MessageType* TxMsg)
 
 void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg)
 {
-    /* RxMsg parameter unused */
-    (void)RxMsg;
-    static Bool Dummy = False;
+    UNUSED(RxMsg);
 
     TxMsg->Id = ACK_RESPONSE;
-    *((U32*)(&TxMsg->Payload[0])) = 0xDEADC0DE;
-    *((U32*)(&TxMsg->Payload[4])) = 0xDEADC0DE;
-    Dummy = !Dummy;
-    if (Dummy) { Osal_ThreadSuspend(0); }
-    else { Osal_ThreadResume(0); }
-
+    *((U32*)(&TxMsg->Payload[0])) = Osal_GetTickCount();
+    *((U32*)(&TxMsg->Payload[4])) = Osal_msToTicks(1000);
     TxMsg->Crc = MsgHandler_CalcCrc(TxMsg);
 }
 
+void MsgHandler_0x01(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg)
+{
+    UNUSED(RxMsg);
+
+    TxMsg->Id = ACK_RESPONSE;
+    TxMsg->Payload[0] = Wdg_ReadResetReason();
+    for (U8 i = 1; i < MSG_PAYLOAD_SIZE; i++)
+    {
+        TxMsg->Payload[i] = 0x00U;
+    }
+
+    TxMsg->Crc = MsgHandler_CalcCrc(TxMsg);
+}
 
 /* -------------------------- Public function definitions -------------------------- */
 

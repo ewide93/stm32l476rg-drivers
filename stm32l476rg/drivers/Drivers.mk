@@ -10,6 +10,7 @@ SRC += $(DRIVERS_PATH)/crc.c
 SRC += $(DRIVERS_PATH)/exti.c
 SRC += $(DRIVERS_PATH)/core_debug.c
 SRC += $(DRIVERS_PATH)/dma.c
+SRC += $(DRIVERS_PATH)/watchdog.c
 
 # Include paths
 INC += $(DRIVERS_PATH)
