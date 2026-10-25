@@ -18,10 +18,9 @@
 #include "crc.h"
 #include "protocol.h"
 #include "exti.h"
-#include "mempool.h"
-#include "osal.h"
 #include "core_debug.h"
 #include "limit.h"
+#include "scheduler.h"
 
 /* ----------------------------------- Move this! ---------------------------------- */
 
@@ -107,15 +106,14 @@ RotEnc_SimpleRotEncType Encoder = { 0 };
  */
 void Setup(void);
 
-void BlinkThreadFunc(void* Arg);
-void CommThreadFunc(void* Arg);
+void BlinkTask(void);
+void CommTask(void);
 
 /* ------------------------------ Program entry-point ------------------------------ */
 
 int main(void)
 {
     Setup();
-    MemPool_Init();
     Crc_Enable();
     Crc_Crc8ConfigType Crc8Cfg = Crc_GetSAEJ1850Config();
     Crc_Crc8Init(&Crc8Cfg);
@@ -124,13 +122,13 @@ int main(void)
     Digital_OutputInit(&OutputA5);
     RotEnc_Init(&Encoder, PIN_A0, PIN_A1, True);
 
-    Osal_ThreadCreate(BlinkThreadFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
-    Osal_ThreadCreate(CommThreadFunc, NULL, 1024, THREAD_PRIORITY_MEDIUM);
-    Osal_StartScheduler();
+    Sched_RegisterPeriodicTask(BlinkTask, 31U);
+    Sched_RegisterPeriodicTask(CommTask, 30U);
+    Sched_Start();
 
     while (1)
     {
-        /* Should never get here after OS scheduler is started. */
+        /* Should never get here after scheduler is started. */
     }
 
     return 0;
@@ -174,26 +172,21 @@ void Setup(void)
     ClkCtrl_PeripheralClockEnable(PCLK_USART2);
 
     /**
-     * Initialize SysTick with default configuration in
-     * cases where we're running without FreeRTOS.
+     * Initialize SysTick with default configuration (1 KHz tick frequency).
      */
-    #if defined(OSAL_CONFIG_USE_BARE_METAL) && (OSAL_CONFIG_USE_BARE_METAL == 1)
-        const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
-        SysTick_Init(&SysTickCfg);
-    #elif defined(OSAL_CONFIG_USE_FREERTOS) && (OSAL_CONFIG_USE_FREERTOS == 1)
-        NVIC_SetPriorityGrouping(0U);
-    #endif
+    const SysTick_ConfigType SysTickCfg = SysTick_GetDefaultConfig();
+    SysTick_Init(&SysTickCfg);
+
+    // Set NVIC priority grouping to 0.
+    NVIC_SetPriorityGrouping(0U);
 }
 
-void BlinkThreadFunc(void* Arg)
+void BlinkTask(void)
 {
-    UNUSED(Arg);
-    U32 Period_Ticks = Osal_msToTicks(2UL);
-    U32 Timekeeping = Osal_GetTickCount();
-    U16 Cnt = 0U;
-    U16 Threshold = 250U;
+    static U16 Cnt = 0U;
+    static U16 Threshold = 250U;
 
-    while (True)
+    if (SysTick_GetTicks() % 2U == 0U)
     {
         /* Poll rotary encoder for event */
         RotEnc_EventEnum EncoderEvent = RotEnc_Poll(&Encoder);
@@ -218,17 +211,10 @@ void BlinkThreadFunc(void* Arg)
             Digital_Toggle(&OutputA5);
             Cnt = 0U;
         }
-
-        /* Put thread to sleep until next iteration */
-        Osal_DelayUntil(&Timekeeping, Period_Ticks);
     }
 }
 
-void CommThreadFunc(void* Arg)
+void CommTask(void)
 {
-    UNUSED(Arg);
-    while (True)
-    {
-        Protocol_Run();
-    }
+    Protocol_Run();
 }

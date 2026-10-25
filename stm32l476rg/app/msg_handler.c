@@ -8,7 +8,7 @@
 /* ------------------------------- Include directives ------------------------------ */
 #include "msg_handler.h"
 #include "crc.h"
-#include "osal.h"
+#include "systick.h"
 #include "watchdog.h"
 
 /*  ----------------- Structures, enumerations & type definitions ------------------ */
@@ -45,14 +45,14 @@ void MsgHandler_ConstructCrcErrorResponse(Protocol_MessageType* TxMsg);
 void MsgHandler_ConstructMsgIdErrorResponse(Protocol_MessageType* TxMsg);
 
 /**
- * @brief Handler for message with ID: 0x00. 
- *        Get the current value of the RTOS tick counter &
- *        the configured number of ticks per second.
+ * @brief Handler for message with ID: 0x00.
+ *        Get the current value of the system tick counter and
+ *        the number of times the counter has overflowed.
  */
 void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg);
 
 /**
- * @brief Handler for message with ID: 0x01. 
+ * @brief Handler for message with ID: 0x01.
  *        WIP: Return watchdog stuff, currently only reads the MCU reset reason.
  */
 void MsgHandler_0x01(const Protocol_MessageType* RxMsg, Protocol_MessageType* TxMsg);
@@ -108,8 +108,8 @@ void MsgHandler_0x00(const Protocol_MessageType* RxMsg, Protocol_MessageType* Tx
     UNUSED(RxMsg);
 
     TxMsg->Id = ACK_RESPONSE;
-    *((U32*)(&TxMsg->Payload[0])) = Osal_GetTickCount();
-    *((U32*)(&TxMsg->Payload[4])) = Osal_msToTicks(1000);
+    *((U32*)(&TxMsg->Payload[0])) = SysTick_GetTicks();
+    *((U32*)(&TxMsg->Payload[4])) = SysTick_GetNofWrapArounds();
     TxMsg->Crc = MsgHandler_CalcCrc(TxMsg);
 }
 

@@ -11,6 +11,7 @@
 static volatile U32 TickCnt = 0;
 static volatile U32 PreviousTickCnt = 0;
 static volatile U32 WrapAroundCnt = 0;
+static CallbackFunction Callback = NULL;
 
 /* -------------------------- Public function definitions -------------------------- */
 
@@ -33,6 +34,13 @@ U32 SysTick_GetNofWrapArounds(void)
     return WrapAroundCnt;
 }
 
+Bool SysTick_RegisterCallback(CallbackFunction Function)
+{
+    Bool RetVal = False;
+    if (Callback == NULL) { Callback = Function; RetVal = True; }
+    return RetVal;
+}
+
 
 /* -------------------- Redefinition of weak interrupt handlers -------------------- */
 
@@ -45,5 +53,6 @@ void SysTickHandler(void)
     PreviousTickCnt = TickCnt;
     TickCnt++;
     if (TickCnt < PreviousTickCnt) { WrapAroundCnt++; }
+    if (Callback != NULL) { Callback(); }
 }
 

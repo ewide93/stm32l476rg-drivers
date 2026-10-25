@@ -1,5 +1,4 @@
-import os
-import sys
+import platform
 import time
 import struct
 from serial.tools import list_ports
@@ -13,7 +12,10 @@ def find_usb_device(match_str: str) -> Optional[str]:
     devices = list_ports.comports()
     for device in devices:
         if match_str in device.description:
-            device_path = f"/dev/{device.name}"
+            if platform.system() == "Linux":
+                device_path = f"/dev/{device.name}"
+            else:
+                device_path = device.name
             break
     return device_path
 
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     # dev.close()
 
 
-    com_port = find_usb_device("STM32")
+    com_port = find_usb_device("STLink")
     calc = Calculator(Crc8.SAEJ1850.value)
     data = bytearray([0x01])
     data.extend(bytearray(8))

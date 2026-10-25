@@ -51,6 +51,13 @@ U32 SysTick_GetTicks(void);
  */
 U32 SysTick_GetNofWrapArounds(void);
 
+/**
+ * @brief Register a function to be invoked on each timer interrupt.
+ * @param Function Function to be invoked.
+ * @return True = Callback was added, False = failed to add callback.
+ */
+Bool SysTick_RegisterCallback(CallbackFunction Function);
+
 /* -------------------------- Inline function definitions -------------------------- */
 
 /**

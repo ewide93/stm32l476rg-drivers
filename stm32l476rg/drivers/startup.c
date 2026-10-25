@@ -8,7 +8,6 @@
 
 /* ------------------------------- Include directives ------------------------------ */
 #include "startup.h"
-#include "osal.h"
 
 /* ------------------------ Symbols defined in linker script ----------------------- */
 extern U32 _data_loadaddr;
@@ -34,18 +33,9 @@ VectorTableType VectorTable SECTION(IVT_SECTION) =
     .BusFaultHandler = BusFaultHandler,
     .UsageFaultHandler = UsageFaultHandler,
     .ReservedSection0 = { 0, 0, 0, 0 },
-    /* OSAL configuration */
-    #if defined(OSAL_CONFIG_USE_FREERTOS) && (OSAL_CONFIG_USE_FREERTOS == 1)
-        .SVCallHandler = vPortSVCHandler,
-        .PendSVHandler = xPortPendSVHandler,
-        .SysTickHandler = xPortSysTickHandler,
-    #elif defined(OSAL_CONFIG_USE_BARE_METAL) && (OSAL_CONFIG_USE_BARE_METAL == 1)
-        .SVCallHandler = SVCallHandler,
-        .PendSVHandler = PendSVHandler,
-        .SysTickHandler = SysTickHandler,
-    #else
-        #error "Missing configuration for OSAL_CONFIG_USE_FREERTOS, OSAL_CONFIG_USE_BARE_METAL"
-    #endif /* OSAL configuration */
+    .SVCallHandler = SVCallHandler,
+    .PendSVHandler = PendSVHandler,
+    .SysTickHandler = SysTickHandler,
     .DebugMonHandler = DebugMonHandler,
     .ReservedSection1 = 0,
     .ISR[WWDG_IRQn] = WWDG_IRQHandler,

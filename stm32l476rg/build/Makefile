@@ -19,15 +19,11 @@ ELF_FILE := $(TARGET).elf
 MOT_FILE := $(TARGET).mot
 BIN_FILE := $(TARGET).bin
 HEX_FILE := $(TARGET).hex
-ROOT := ..
+ROOT := ../..
 OBJ_DIR := obj
 OUT_DIR := out
 LINKER_SCRIPT := $(TARGET).ld
-ifeq ($(OS), Linux)
-	CMSIS_PACK := ~/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
-else
-	CMSIS_PACK := C:/tools/CMSIS-packs/Keil.STM32L4xx_DFP.3.1.0.pack
-endif
+PYOCD_CFG = $(ROOT)/pyocd.yaml
 
 # -------------------------------------------------------------------------------------
 # Gather & arrange variables for build system
@@ -164,9 +160,6 @@ LINT_PREPROCESSOR_UNDEF += -USTM32L4S5xx
 LINT_PREPROCESSOR_UNDEF += -USTM32L4S7xx
 LINT_PREPROCESSOR_UNDEF += -USTM32L4S9xx
 
-# Ignore FreeRTOS files
-LINT_IGNORE := -i$(EXTERNAL_PATH)/FreeRTOS
-
 # -------------------------------------------------------------------------------------
 # Default rule
 # -------------------------------------------------------------------------------------
@@ -206,7 +199,7 @@ convert: $(OUT_DIR)/$(MOT_FILE) $(OUT_DIR)/$(BIN_FILE) $(OUT_DIR)/$(HEX_FILE)
 # -------------------------------------------------------------------------------------
 .PHONY: flash
 flash: $(OUT_DIR)/$(ELF_FILE)
-	@pyocd flash $^
+	@pyocd flash --config=$(PYOCD_CFG) $^
 
 # -------------------------------------------------------------------------------------
 # Rule to produce .elf file
@@ -242,7 +235,7 @@ clean:
 # -------------------------------------------------------------------------------------
 .PHONY: lint
 lint:
-	@$(LINTER) $(LINTFLAGS) $(LINT_PREPROCESSOR_DEF) $(LINT_PREPROCESSOR_UNDEF) $(LINT_IGNORE) $(LINT_INC) $(LINT_SUPPRESS) $(dir $(SRC))
+	@$(LINTER) $(LINTFLAGS) $(LINT_PREPROCESSOR_DEF) $(LINT_PREPROCESSOR_UNDEF) $(LINT_INC) $(LINT_SUPPRESS) $(dir $(SRC))
 
 # -------------------------------------------------------------------------------------
 # Include dependency files
